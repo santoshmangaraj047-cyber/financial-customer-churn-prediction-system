@@ -121,3 +121,6 @@ This project has no external dependencies. It uses only vanilla HTML, CSS, and J
 ## License
 
 This project is open-source and can be used freely for personal or commercial purposes. No specific license is applied.
+ 
+
+ Santosh
