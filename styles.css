@@ -74,7 +74,7 @@ header .navbar {
 .navbar .navbar-items {
     display: flex;
     gap: 45px;
-    padding-right: 278px;
+    padding-right: 150px;
 
 }
 .navbar .nav-logo .logo-text {
@@ -162,7 +162,7 @@ header .navbar {
 
 .main-section  .section-details .start:hover {
     color: black;
-    background-color:rgb(61, 23, 216);
+    background-color:rgb(57, 156, 24);
     border-color: black;
     
 }
