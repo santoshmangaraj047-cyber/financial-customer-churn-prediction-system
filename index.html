@@ -4,14 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCCPS</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>customer churn prediction</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Miniver&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Miniver&display=swap');
+        * {font-family: Arial, Helvetica, sans-serif;padding: 0;margin: 0;box-sizing: border-box;}
+        :root {/* color */--white-color: #fff;--dark-color: rgba(15, 14, 14, 0.916);--primary-color: linear-gradient(to bottom right, #001845, #023E7D, #0466C8,#979DAC,#5C677D,#023E7D );--secondary-color: #010000c1;;--lightgrey-color: grey;
+        /* font size */--font-size-s: 0.9rem;--font-size-m: 1.5rem;--font-size-m: 1.12rem;--font-size-l: 1.5rem;--font-size-xl: 2rem;--font-size-xxl: 2.3rem;/* font-weight */--font-weight-n: 400;--font-weight-m: 500;--font-weight-semibold: 600;--font-weight-bold: 700;/* radius */--border-radius-s: 8px;--border-radius-m: 80px;--border-radius-circle: 50%;--site-max-width: 1300px;}
+        body {font-family: Arial, sans-serif;margin: 0;padding: 0;background: linear-gradient(to bottom right,#001845, #023E7D, #0466C8,#979DAC,#5C677D,#023E7D );min-height: 100vh;}
+        ul {list-style: none;}
+        a {text-decoration: none;}
+        header .navbar {display: flex;align-items: center;justify-content: space-between;
+        height: 60px;padding-left: 30px;font-size: var(--font-size-m);}
+        .navbar .navbar-items {display: flex;gap: 45px;padding-right: 150px;}
+        .navbar .nav-logo .logo-text {color: var(--white-color);font-size: var(--font-size-xl);}
+        .navbar .navbar-items .item {padding: 10px 15px;color: var(--white-color);/* background: var(--secondary-color); */border-radius: var(--border-radius-m);font-size: var(--font-size-m);transition: 0.3s ease;font-family:Verdana, Geneva, Tahoma, sans-serif}
+        .navbar .navbar-items .item:hover {color: black;background: rgb(255, 255, 255);}
+        .navbar .nav-logo .logo-text {color: var(--white-color);font-size: var(--font-size-xl);font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;padding-left: 20px;}
+        .main-section .section-details .main-text {color: var(--white-color);display: flex;text-align: center;align-items: center;}
+        .main-section {display: flex;justify-content: center;align-items: center;min-height: calc(100vh - 60px);margin-top: 0px}
+        .main-section .section-details {text-align: center;display: flex;flex-direction: column;align-items: center;justify-content: center}
+        @keyframes slideInFromLeft {from {opacity: 0;transform: translateX(-100%);}to {opacity: 1;transform: translateX(0);}}
+        .main-section .section-details .main-text {color: var(--white-color);font-size: 5rem;font-weight: var(--font-weight-bold);margin-bottom: 20px;font-family: "Lato", sans-serif;gap: 20px;animation: slideInFromLeft 1s ease-out forwards;}
+        .main-section  .section-details .start {color: var(--white-color);border-radius: var(--border-radius-m);padding: 10px 24px;font-size: var(--font-size-m);background-color: rgb(16, 6, 35);border: 2px solid transparent;transition: 0.10s;animation: slideInFromLeft 3s ease-out forwards;font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;}
+        .main-section  .section-details .start:hover {color: black;background-color:rgba(232, 237, 230, 0.659);border-color: black;}
+
+    </style>
 </head>
 
 <body>
     <header>
         <nav class="navbar">
-            
+
             <a href="#" class="nav-logo">
                 <h2 class="logo-text">FCCPS</h2>
             </a>
@@ -19,17 +44,17 @@
                 <li class="nav-links">
                     <a href="#" class="item"> Home</a>
                 </li>
-                <li class="nav-links">
-                    <a href="#" class="item">Model Training</a>
+                <li class="nav-bar">
+                    <a href="#" class="item"> Model Training</a>
                 </li>
-                <li class="nav-links">
-                    <a href="#" class="item">Contribution</a>
+                <li class="nav-bar">
+                    <a href="#" class="item"> Contribution</a>
                 </li>
-                <li class="nav-links">
-                    <a href="about.html" class="item">About us</a>
+                <li class="nav-bar">
+                    <a href="#" class="item"> About us</a>
                 </li>
-                <li class="nav-links">
-                    <a href="#" class="item">Contact us</a>
+                <li class="nav-bar">
+                    <a href="#" class="item"> Contact us</a>
                 </li>
 
 
@@ -39,8 +64,9 @@
     <main>
         <section class="main-section">
             <div class="section-details">
-            
-               <b> <p class="main-text">Let's Get Started</p> </b>
+                <b>
+                    <p class="main-text">Let's Get Started</p>
+                </b>
 
                 <div class="login"><button type="button" onclick="window.location.href='login.html'"><h3>Login/Signup</h3></button></div>
             </div>
