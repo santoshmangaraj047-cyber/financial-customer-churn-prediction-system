@@ -1,134 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - FCCPS</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login / Sign Up - FCCPS</title>
     <style>
+        :root {
+            --bg-start: #001845;
+            --bg-mid: #023E7D;
+            --accent: #0466C8;
+            --muted: #5C677D;
+            --card-bg: rgba(255, 255, 255, 0.98);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #001845, #023E7D);
+            height: 100%;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: Nunito, Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid));
+        }
+
+        .wrap {
             min-height: 100vh;
-            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px
         }
-        .container {
-            background-color: white;
-            border-radius: 20px;
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
-            padding: 40px;
-            max-width: 400px;
+
+        /* larger split layout */
+        .card {
+            background: transparent;
             width: 100%;
-            text-align: center;
+            max-width: 1000px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(2, 34, 71, 0.45);
+            overflow: hidden;
+            display: flex;
+            min-height: 520px
         }
-        h2 {
-            color: #023E7D;
-            margin-bottom: 20px;
-        }
-        form {
+
+        .left {
+            flex: 1;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid));
+            color: #fff;
+            padding: 48px;
             display: flex;
             flex-direction: column;
+            justify-content: center
         }
+
+        .left h1 {
+            font-size: 2.4rem;
+            margin: 0 0 12px
+        }
+
+        .left p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 18px;
+            font-size: 1.05rem
+        }
+
+        .left .text {
+            margin-top: 18px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: inline-block
+        }
+
+        .right {
+            flex: 1;
+            background: var(--card-bg);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center
+        }
+
+        .form-title {
+            color: var(--bg-mid);
+            font-size: 1.4rem;
+            margin: 0 0 6px
+        }
+
+        .form-sub {
+            color: var(--muted);
+            margin: 0 0 18px
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--bg-mid);
+            background: transparent;
+            border: 1px solid #e9edf6
+        }
+
+        .tab.active {
+            background: linear-gradient(90deg, var(--bg-start), var(--bg-mid));
+            color: #fff;
+            border-color: transparent
+        }
+
+        form {
+            display: flex;
+            flex-direction: column
+        }
+
         label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #5C677D;
-            text-align: left;
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 10px
         }
-        input[type="text"], input[type="email"], input[type="password"] {
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #979DAC;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+
+        input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d7dfe9;
+            margin-top: 8px;
+            font-size: 0.96rem
         }
-        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-            border-color: #0466C8;
-            outline: none;
+
+        .action {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 0;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer
         }
-        button {
-            background-color: #0466C8;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
+
+        .small {
+            font-size: 0.88rem;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 10px
         }
-        button:hover {
-            background-color: #023E7D;
+
+        .small a {
+            color: var(--accent);
+            text-decoration: none
         }
-        .link {
-            margin-top: 15px;
+
+        /* compact centered form within the right panel */
+        .form-card {
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto;
+            padding: 6px 2px
         }
-        .link a {
-            color: #0466C8;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .link a:hover {
-            text-decoration: underline;
-        }
+
         .hidden {
-            display: none;
+            display: none
+        }
+
+        @media (max-width:880px) {
+            .card {
+                flex-direction: column;
+                min-height: initial
+            }
+
+            .left {
+                padding: 28px;
+                text-align: center
+            }
+
+            .right {
+                padding: 22px
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div id="login-form">
-            <h2>Login to Your Account</h2>
-            <form action="#" method="post">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" name="email" required>
-                
-                <label for="login-password">Password</label>
-                <input type="password" id="login-password" name="password" required>
-                
-                <button type="submit">Login</button>
-            </form>
-            <div class="link">
-                <a href="#" onclick="showSignup()">Don't have an account? Register Now</a>
+    <div class="wrap">
+        <div class="card" role="region" aria-label="Authentication area">
+            <div class="left">
+                <h1>Welcome to FCCPS</h1>
+                <p>Powerful customer churn prediction tools. Sign in to manage datasets, train models and visualize
+                    results.</p>
+                <div class="text">Trusted · Secure · Fast</div>
             </div>
-        </div>
-        <div id="signup-form" class="hidden">
-            <h2>Register Now</h2>
-            <form action="#" method="post">
-                <label for="signup-name">Full Name</label>
-                <input type="text" id="signup-name" name="name" required>
-                
-                <label for="signup-email">Email</label>
-                <input type="email" id="signup-email" name="email" required>
-                
-                <label for="signup-password">Password</label>
-                <input type="password" id="signup-password" name="password" required>
-                
-                <label for="signup-confirm-password">Confirm Password</label>
-                <input type="password" id="signup-confirm-password" name="confirm-password" required>
-                
-                <button type="submit">Sign Up</button>
-            </form>
-            <div class="link">
-                <a href="#" onclick="showLogin()">Already have an account? Login</a>
+
+            <div class="right">
+                <div class="form-card">
+                    <div class="form-title">Access your account</div>
+                    <div class="form-sub">Sign in or create a free account to continue</div>
+
+                    <div class="tabs" role="tablist">
+                        <div class="tab active" id="tab-login" role="tab" aria-selected="true">Login</div>
+                        <div class="tab" id="tab-signup" role="tab" aria-selected="false">Sign Up</div>
+                    </div>
+
+                    <div id="panel-login" role="tabpanel">
+                        <form id="login-form" autocomplete="on">
+                            <label for="login-email">Email</label>
+                            <input id="login-email" type="email" required placeholder="you@example.com">
+                            <label for="login-password">Password</label>
+                            <input id="login-password" type="password" required placeholder="Your password">
+                            <button class="action" type="submit">Sign In</button>
+                        </form>
+                        <p class="small">Forgot password? <a href="#">Reset</a></p>
+                    </div>
+
+                    <div id="panel-signup" role="tabpanel" class="hidden">
+                        <form id="signup-form" autocomplete="on">
+                            <label for="signup-name">Full name</label>
+                            <input id="signup-name" type="text" required placeholder="Jane Doe">
+                            <label for="signup-email">Email</label>
+                            <input id="signup-email" type="email" required placeholder="you@example.com">
+                            <label for="signup-password">Password</label>
+                            <input id="signup-password" type="password" required placeholder="Choose a password">
+                            <button class="action" type="submit">Create Account</button>
+                        </form>
+                        <p class="small">By creating an account you agree to our <a href="#">terms</a>.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
-        function showSignup() {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
-        }
-        function showLogin() {
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        }
+        // Tab toggling
+        const tabLogin = document.getElementById('tab-login');
+        const tabSignup = document.getElementById('tab-signup');
+        const panelLogin = document.getElementById('panel-login');
+        const panelSignup = document.getElementById('panel-signup');
+
+        function showLogin() { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); panelLogin.classList.remove('hidden'); panelSignup.classList.add('hidden'); }
+        function showSignup() { tabSignup.classList.add('active'); tabLogin.classList.remove('active'); panelSignup.classList.remove('hidden'); panelLogin.classList.add('hidden'); }
+
+        tabLogin.addEventListener('click', showLogin);
+        tabSignup.addEventListener('click', showSignup);
+
+        document.getElementById('login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            alert('Login submitted (stub).');
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            alert('Signup submitted (stub).');
+        });
     </script>
 </body>
+
 </html>
