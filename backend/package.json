@@ -2,12 +2,30 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "This is the Backend of Project FCCPS",
-  "keywords": ["FCCPS", "Backend" , "NodeJS", "ExpressJS", "MongoDB"],
+  "keywords": [
+    "FCCPS",
+    "Backend",
+    "NodeJS",
+    "ExpressJS",
+    "MongoDB"
+  ],
   "license": "ISC",
   "author": "Piyush Barik",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

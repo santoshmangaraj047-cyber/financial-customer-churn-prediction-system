@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { login, register } from '../services/api';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('login');
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 880 : false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     function onResize() {
@@ -115,15 +119,46 @@ export default function Login() {
     width: '100%'
   };
 
-  function handleLoginSubmit(e) {
+  // 🔐 LOGIN HANDLER – calls real API
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    alert('Login submitted (stub).');
-  }
+    setMessage('');
+    const form = e.target;
+    const email = form['login-email'].value;
+    const password = form['login-password'].value;
 
-  function handleSignupSubmit(e) {
+    try {
+      const res = await login({ email, password });
+      // Save token & user data
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setMessage('✅ Login successful! Redirecting...');
+      // Redirect to dashboard after a short delay
+      setTimeout(() => navigate('/dashboard'), 1000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || '❌ Login failed. Please try again.');
+    }
+  };
+
+  // 📝 SIGNUP HANDLER – calls real API
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
-    alert('Signup submitted (stub).');
-  }
+    setMessage('');
+    const form = e.target;
+    const name = form['signup-name'].value;
+    const email = form['signup-email'].value;
+    const password = form['signup-password'].value;
+
+    try {
+      const res = await register({ name, email, password });
+      setMessage('✅ Registration successful! You can now log in.');
+      // Clear form and switch to login tab
+      form.reset();
+      setTab('login');
+    } catch (err) {
+      setMessage(err.response?.data?.message || '❌ Registration failed. Please try again.');
+    }
+  };
 
   return (
     <div style={containerStyle}>
@@ -152,7 +187,6 @@ export default function Login() {
               >
                 Login
               </div>
-
               <div
                 role="tab"
                 aria-selected={tab === 'signup'}
@@ -164,6 +198,13 @@ export default function Login() {
               </div>
             </div>
 
+            {/* 👇 MESSAGE DISPLAY */}
+            {message && (
+              <div style={{ marginBottom: 16, padding: 10, borderRadius: 8, background: '#f0f4ff', color: '#023E7D', fontSize: '0.95rem' }}>
+                {message}
+              </div>
+            )}
+
             <div id="login" role="tabpanel" style={{ display: tab === 'login' ? 'block' : 'none' }}>
               <form id="login-form" autoComplete="on" onSubmit={handleLoginSubmit}>
                 <label htmlFor="login-email" style={labelStyle}>Email</label>
@@ -174,8 +215,9 @@ export default function Login() {
 
                 <button className="action" type="submit" style={actionStyle}>Sign In</button>
               </form>
-
-              <p style={{ fontSize: '0.88rem', color: colors.muted, textAlign: 'center', marginTop: 10 }}>Forgot password? <a href="#" onClick={(e) => e.preventDefault()} style={{ color: colors.accent, textDecoration: 'none' }}>Reset</a></p>
+              <p style={{ fontSize: '0.88rem', color: colors.muted, textAlign: 'center', marginTop: 10 }}>
+                Forgot password? <a href="#" onClick={(e) => e.preventDefault()} style={{ color: colors.accent, textDecoration: 'none' }}>Reset</a>
+              </p>
             </div>
 
             <div id="signup" role="tabpanel" style={{ display: tab === 'signup' ? 'block' : 'none' }}>
@@ -191,14 +233,13 @@ export default function Login() {
 
                 <button className="action" type="submit" style={actionStyle}>Create Account</button>
               </form>
-
-              <p style={{ fontSize: '0.88rem', color: colors.muted, textAlign: 'center', marginTop: 10 }}>By creating an account you agree to our <a href="#" onClick={(e) => e.preventDefault()} style={{ color: colors.accent, textDecoration: 'none' }}>terms</a>.</p>
+              <p style={{ fontSize: '0.88rem', color: colors.muted, textAlign: 'center', marginTop: 10 }}>
+                By creating an account you agree to our <a href="#" onClick={(e) => e.preventDefault()} style={{ color: colors.accent, textDecoration: 'none' }}>terms</a>.
+              </p>
             </div>
-
           </div>
         </div>
       </div>
     </div>
   );
 }
- 
