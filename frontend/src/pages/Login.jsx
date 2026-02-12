@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, register } from '../services/api';
+import { login as apiLogin, register } from '../services/api';
+import { AuthContext } from '../context/AuthContext'; 
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login: contextLogin } = useContext(AuthContext); 
   const [tab, setTab] = useState('login');
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 880 : false);
   const [message, setMessage] = useState('');
@@ -119,7 +121,7 @@ export default function Login() {
     width: '100%'
   };
 
-  // 🔐 LOGIN HANDLER – calls real API
+  // LOGIN HANDLER – uses context
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -128,19 +130,17 @@ export default function Login() {
     const password = form['login-password'].value;
 
     try {
-      const res = await login({ email, password });
-      // Save token & user data
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      const res = await apiLogin({ email, password });
+      // Use context login to store token & user
+      contextLogin(res.data.token, res.data.user);
       setMessage('✅ Login successful! Redirecting...');
-      // Redirect to dashboard after a short delay
       setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || '❌ Login failed. Please try again.');
     }
   };
 
-  // 📝 SIGNUP HANDLER – calls real API
+  // SIGNUP HANDLER – calls real API (no changes)
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -152,7 +152,6 @@ export default function Login() {
     try {
       const res = await register({ name, email, password });
       setMessage('✅ Registration successful! You can now log in.');
-      // Clear form and switch to login tab
       form.reset();
       setTab('login');
     } catch (err) {

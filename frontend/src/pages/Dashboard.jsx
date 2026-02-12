@@ -1,32 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext'; // ✅ relative path
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 880 : false);
-  const [user, setUser] = useState(null);
+  const { user, logout } = useContext(AuthContext);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 880);
   const [activeSection, setActiveSection] = useState('overview');
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (!token || !userData) {
+    if (!user) {
       navigate('/login');
-      return;
     }
-    setUser(JSON.parse(userData));
+  }, [user, navigate]);
 
-    function onResize() {
-      setIsMobile(window.innerWidth <= 880);
-    }
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 880);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [navigate]);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
@@ -100,10 +95,7 @@ export default function Dashboard() {
     cursor: 'pointer',
     fontSize: '0.9rem',
     fontWeight: 600,
-    transition: '0.3s ease',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.1)'
-    }
+    transition: '0.3s ease'
   };
 
   const mainContentStyle = {
@@ -168,10 +160,7 @@ export default function Dashboard() {
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
     transition: '0.3s ease',
     cursor: 'pointer',
-    border: '1px solid #e9edf6',
-    '&:hover': {
-      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)'
-    }
+    border: '1px solid #e9edf6'
   };
 
   const metricLabelStyle = {
@@ -257,7 +246,6 @@ export default function Dashboard() {
     fontWeight: 500
   };
 
-  // Mock data
   const metrics = [
     { label: 'Total Customers', value: '2,543', change: '+12%' },
     { label: 'Predicted Churn', value: '342', change: '+5%' },
@@ -274,53 +262,73 @@ export default function Dashboard() {
   ];
 
   if (!user) {
-    return <div style={containerStyle}><p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Loading...</p></div>;
+    return (
+      <div style={containerStyle}>
+        <p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Loading...</p>
+      </div>
+    );
   }
 
   return (
     <div style={containerStyle}>
-      {/* Header */}
       <header style={headerStyle}>
         <h1 style={logoStyle}>FCCPS</h1>
         <div style={userInfoStyle}>
           <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
             <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>Welcome back</p>
-            <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>{user.name}</p>
+            <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>
+  {user?.name || user?.email?.split('@')[0] || 'User'}
+</p>
           </div>
           <div style={avatarStyle}>{user.name?.charAt(0).toUpperCase()}</div>
-          <button style={logoutBtnStyle} onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'} onMouseLeave={(e) => e.target.style.background = 'transparent'} onClick={handleLogout}>
+          <button
+            style={logoutBtnStyle}
+            onMouseEnter={(e) => (e.target.style.background = 'rgba(255, 255, 255, 0.2)')}
+            onMouseLeave={(e) => (e.target.style.background = 'transparent')}
+            onClick={handleLogout}
+          >
             Logout
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
       <div style={mainContentStyle}>
-        {/* Sidebar Navigation */}
         <aside style={sidebarStyle}>
-          {['📊 Overview', '👥 Customers', '🔮 Predictions', '📈 Analytics', '⚙️ Settings'].map((item, idx) => (
-            <button
-              key={idx}
-              style={navItemStyle(activeSection === item.split(' ')[1].toLowerCase())}
-              onClick={() => setActiveSection(item.split(' ')[1].toLowerCase())}
-              onMouseEnter={(e) => !activeSection.includes(item.split(' ')[1].toLowerCase()) && (e.target.style.background = 'rgba(4, 102, 200, 0.2)')}
-              onMouseLeave={(e) => !activeSection.includes(item.split(' ')[1].toLowerCase()) && (e.target.style.background = 'transparent')}
-            >
-              {item}
-            </button>
-          ))}
+          {['📊 Overview', '👥 Customers', '🔮 Predictions', '📈 Analytics', '⚙️ Settings'].map((item, idx) => {
+            const section = item.split(' ')[1].toLowerCase();
+            return (
+              <button
+                key={idx}
+                style={navItemStyle(activeSection === section)}
+                onClick={() => setActiveSection(section)}
+                onMouseEnter={(e) =>
+                  !activeSection.includes(section) &&
+                  (e.target.style.background = 'rgba(4, 102, 200, 0.2)')
+                }
+                onMouseLeave={(e) =>
+                  !activeSection.includes(section) &&
+                  (e.target.style.background = 'transparent')
+                }
+              >
+                {item}
+              </button>
+            );
+          })}
         </aside>
 
-        {/* Content Area */}
         <div style={contentStyle}>
           {activeSection === 'overview' && (
             <>
               <h2 style={sectionTitleStyle}>Dashboard Overview</h2>
 
-              {/* Metrics Grid */}
               <div style={metricsGridStyle}>
                 {metrics.map((metric, idx) => (
-                  <div key={idx} style={metricCardStyle} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)'}>
+                  <div
+                    key={idx}
+                    style={metricCardStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)')}
+                  >
                     <div style={metricLabelStyle}>{metric.label}</div>
                     <div style={metricValueStyle}>{metric.value}</div>
                     <div style={metricChangeStyle(metric.change.includes('+') && metric.label !== 'Predicted Churn')}>
@@ -330,37 +338,47 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Charts Section */}
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20, marginBottom: 36 }}>
                 <div style={chartContainerStyle}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: colors.bgStart, fontWeight: 600 }}>Churn Distribution</h3>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: colors.bgStart, fontWeight: 600 }}>
+                    Churn Distribution
+                  </h3>
                   <div style={chartPlaceholderStyle}>📊 Donut Chart Placeholder</div>
                 </div>
                 <div style={chartContainerStyle}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: colors.bgStart, fontWeight: 600 }}>Model Performance</h3>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '1.2rem', color: colors.bgStart, fontWeight: 600 }}>
+                    Model Performance
+                  </h3>
                   <div style={chartPlaceholderStyle}>📈 Line Chart Placeholder</div>
                 </div>
               </div>
 
-              {/* Customer Data Table */}
               <h3 style={{ fontSize: '1.3rem', color: '#fff', marginBottom: 16, fontWeight: 600 }}>Recent Predictions</h3>
               <div style={dataTableStyle}>
                 {isMobile ? (
-                  // Mobile Card View
                   <div>
                     {customerData.map((customer, idx) => (
-                      <div key={idx} style={{ padding: '16px 20px', borderBottom: idx < customerData.length - 1 ? `1px solid #e9edf6` : 'none' }}>
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '16px 20px',
+                          borderBottom: idx < customerData.length - 1 ? `1px solid #e9edf6` : 'none'
+                        }}
+                      >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                           <div style={{ fontWeight: 600, color: colors.bgStart }}>{customer.name}</div>
                           <div style={statusBadgeStyle(customer.riskLevel)}>{customer.riskLevel}</div>
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: colors.muted, marginBottom: 4 }}>ID: {customer.id} • Monthly: {customer.monthlyCharges}</div>
-                        <div style={{ fontSize: '0.85rem', color: colors.accent, fontWeight: 500 }}>Prediction: {customer.prediction}</div>
+                        <div style={{ fontSize: '0.85rem', color: colors.muted, marginBottom: 4 }}>
+                          ID: {customer.id} • Monthly: {customer.monthlyCharges}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: colors.accent, fontWeight: 500 }}>
+                          Prediction: {customer.prediction}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  // Desktop Table View
                   <>
                     <div style={tableHeaderStyle}>
                       <div>Customer Name</div>
@@ -375,7 +393,14 @@ export default function Dashboard() {
                         <div style={{ color: colors.muted }}>{customer.id}</div>
                         <div style={{ fontWeight: 500 }}>{customer.monthlyCharges}</div>
                         <div><span style={statusBadgeStyle(customer.riskLevel)}>{customer.riskLevel}</span></div>
-                        <div style={{ color: customer.prediction === 'Stable' ? colors.success : customer.prediction === 'At Risk' ? colors.warning : colors.danger, fontWeight: 600 }}>{customer.prediction}</div>
+                        <div
+                          style={{
+                            color: customer.prediction === 'Stable' ? colors.success : customer.prediction === 'At Risk' ? colors.warning : colors.danger,
+                            fontWeight: 600
+                          }}
+                        >
+                          {customer.prediction}
+                        </div>
                       </div>
                     ))}
                   </>
