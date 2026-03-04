@@ -1,0 +1,238 @@
+
+*{
+  margin: 0;
+  padding: 0;
+}
+.sidebar {
+  width: 80px;
+  height: 728px;
+  background: #242652;
+  transition: width 0.35s ease;
+  overflow: hidden;
+  position: fixed;
+  z-index: 1000; /* keep sidebar on top of other content */
+}
+
+/* EXPAND ON HOVER */
+.sidebar:hover {
+  width: 150px;
+}
+
+/* Logo Section */
+.logo {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  gap: 12px;
+}
+
+.logo-text {
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+  font-weight: bold;
+  color: #fff;
+}
+
+.sidebar:hover .logo-text {
+  opacity: 1;
+}
+
+/* Menu Styling */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar svg {
+  width: 22px;
+  height: 22px;
+  stroke: #9aa4ff;
+  stroke-width: 2;
+  fill: none;
+  min-width: 22px;
+}
+
+/* Text Fade-in on Expand */
+.sidebar li span {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  white-space: nowrap;
+}
+
+.sidebar:hover li span {
+  opacity: 1;
+  color: white;
+}
+
+/* PREMIUM HOVER EFFECT */
+.sidebar li:hover {
+  background: linear-gradient(135deg, #4facfe, #6a11cb);
+  box-shadow: 0 0 18px rgba(106, 17, 203, 0.6);
+}
+
+.sidebar li:hover svg {
+  stroke: #fff;
+  transform: scale(1.1);
+}
+
+/* ACTIVE PAGE STYLE */
+.sidebar li.active {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  box-shadow: 0 0 25px rgba(0, 114, 255, 0.7);
+}
+
+.sidebar li.active svg {
+  stroke: #fff;
+}
+
+/* Bonus: Push Content Right (Layout Fix) if your main overlaps */
+.main-content {
+  margin-left: 80px;
+  transition: margin-left 0.35s ease;
+}
+
+.upload-container{
+  width: 1520px;
+  background-color: #0d0d21;
+  height: 729px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  z-index: 0; 
+  padding-left: 1rem;
+}
+.upload-container h2{
+  text-align: left;
+  background: linear-gradient(135deg, #00c6ff, #4a95f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(0, 114, 255, 0.7);
+  font-size: 2.1rem;
+  padding-left: 150px;
+  padding-top: 250px;
+  
+ 
+}
+.heading{
+  padding-bottom: 10px;
+}
+.heading h2{
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+.upload-file{
+  display: flex;
+  align-items: center;
+}
+.upload-file button{
+  background-color: #2f2fc9;
+  color: #fffcfce5;
+  border: 2px solid rgb(49, 49, 210);
+  border-radius: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+}
+.upload-file button:hover{
+  color: #0d0d21;
+}
+.upload-controls{
+  display: flex;
+  gap: 1rem;
+  margin-left: 150px; 
+  margin-top: 19px;
+  margin-bottom: auto;
+}
+.upload-text{
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffffa3;
+  border: 1px solid white;
+  padding: 8px 40px;
+  border-radius: 10px;
+  max-width: 400px;
+  word-wrap: break-word;
+}
+.file-icon {
+  font-size: 1.2rem;
+}
+
+/* floating feature cards */
+.float-cards{
+  position: fixed; 
+  top: 200px;
+  right: 50px;
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 5rem;
+  
+}
+/* no offset, row layout */
+.card{
+  background: linear-gradient(135deg, #00c6ff, #4a95f0);
+  color: black;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  width: 160px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  animation: float 4s ease-in-out infinite;
+}
+.card h3{
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+.card p{
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+.start-btn{
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin: auto;
+}
+#start-btn{
+  background-color: #5959ea;
+  color: #fffcfce5;
+  border: 2px solid rgb(49, 49, 210);
+  border-radius: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  padding: 1.2rem 2.5rem;
+  font-size: 1.2rem;
+}
+#start-btn:hover{
+  color: black;
+  background-color: rgb(102, 178, 208);
+  font-size: 1.1rem ;
+}
+.description{
+  padding-left: 150px;
+  padding-bottom: 15px;
+}
+.description pre{
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload File</title>
+  <link rel="stylesheet" href="upload.css">
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <span class="logo-icon">📊</span>
+      <span class="logo-text">FCCPS</span>
+    </div>
+
+    <ul>
+      <li class="active">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+        <span>Dashboard</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <circle cx="9" cy="7" r="4" />
+          <path d="M2 21v-2c0-2.21 3.58-4 8-4s8 1.79 8 4v2" />
+        </svg>
+        <span>Customers</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <path d="M23 18l-6-6-4 4-8-8" />
+          <path d="M17 12h6v6" />
+        </svg>
+        <span>Churn</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <path d="M3 3v18h18" />
+          <path d="M7 14l4-4 4 4 4-8" />
+        </svg>
+        <span>Analytics</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a7.97 7.97 0 000-6" />
+        </svg>
+        <span>Settings</span>
+      </li>
+    </ul>
+  </div>
+  <div class="profile"></div>
+  <div class="upload-container">
+    <div class="heading">
+      <h2>START PREDICTING NOW!!!!</h2>
+    </div>
+    <div class="upload-controls">
+      <div class="upload-text"><span>Click Upload Here </span></div>
+      <div class="upload-file">
+        <button id="uploadBtn">Upload Here</button>
+        <input type="file" id="realFile" style="display:none"
+          accept=".csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      </div>
+    </div>
+    <div class="description">
+      <pre>After Uploading A file Please click on Start Churn Button 
+for your fastest, secure, efficient result and after that
+you can see your churned results and generate a report</pre>
+    </div>
+    <div class="float-cards">
+      <div class="card">
+        <h3>Fast Processing</h3>
+        <p>Get results in seconds.</p>
+      </div>
+      <div class="card">
+        <h3>Accuracy</h3>
+        <p>High precision predictions.</p>
+      </div>
+      <div class="card">
+        <h3>Secure</h3>
+        <p>Data stays private.</p>
+      </div>
+      <div class="card">
+        <h3>Optimized Result</h3>
+        <p>Data present in an optimize way.</p>
+      </div>
+      <div class="card">
+        <h3>Data Visualization</h3>
+        <p>A good visuals of result.</p>
+      </div>
+    </div>
+    <div class="start-btn">
+      <button id="start-btn" onclick="window.location.href='dashboard.html'">Start Churn</button>
+    </div>
+  </div>
+
+
+
+  <script>
+    // make the blue button open the file chooser
+    const btn = document.getElementById('uploadBtn');
+    const realFile = document.getElementById('realFile');
+    const uploadTextSpan = document.querySelector('.upload-text span');
+
+    btn.addEventListener('click', () => {
+      realFile.click();
+    });
+    const startBtn = document.getElementById('start-btn');
+    startBtn.addEventListener('click', () => {
+      window.location.href = 'dashboard.html';
+    });
+
+    realFile.addEventListener('change', () => {
+      const file = realFile.files[0];
+      if (!file) return;
+      let icon = '📄';
+      if (/\.(xls|xlsx)$/i.test(file.name)) icon = '📊';
+      uploadTextSpan.innerHTML = `<span class="file-icon">${icon}</span> ${file.name}`;
+    });
+  </script>
+
+</body>
+
+</html>

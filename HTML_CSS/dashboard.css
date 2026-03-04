@@ -1,0 +1,264 @@
+*{
+  margin: 0;
+  padding: 0;
+}
+.sidebar {
+  width: 80px;
+  height: 728px;
+  background: #242652;
+  transition: width 0.35s ease;
+  overflow: hidden;
+  position: fixed;
+  z-index: 1000; /* keep sidebar on top of other content */
+}
+
+/* EXPAND ON HOVER */
+.sidebar:hover {
+  width: 150px;
+}
+
+/* Logo Section */
+.logo {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  gap: 12px;
+}
+
+.logo-text {
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+  font-weight: bold;
+  color: #fff;
+}
+
+.sidebar:hover .logo-text {
+  opacity: 1;
+}
+
+/* Menu Styling */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar svg {
+  width: 22px;
+  height: 22px;
+  stroke: #9aa4ff;
+  stroke-width: 2;
+  fill: none;
+  min-width: 22px;
+}
+
+/* Text Fade-in on Expand */
+.sidebar li span {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  white-space: nowrap;
+}
+
+.sidebar:hover li span {
+  opacity: 1;
+  color: white;
+}
+
+/* PREMIUM HOVER EFFECT */
+.sidebar li:hover {
+  background: linear-gradient(135deg, #4facfe, #6a11cb);
+  box-shadow: 0 0 18px rgba(106, 17, 203, 0.6);
+}
+
+.sidebar li:hover svg {
+  stroke: #fff;
+  transform: scale(1.1);
+}
+
+/* ACTIVE PAGE STYLE */
+.sidebar li.active {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  box-shadow: 0 0 25px rgba(0, 114, 255, 0.7);
+}
+
+.sidebar li.active svg {
+  stroke: #fff;
+}
+
+/* Bonus: Push Content Right (Layout Fix) if your main overlaps */
+.main-content {
+  margin-left: 80px;
+  transition: margin-left 0.35s ease;
+}
+.dashboard{
+  /* full available space minus sidebar */
+  width: calc(100% - 80px);
+  height: 1200px;
+  margin-left: 80px;
+  background-color: rgba(4, 2, 30, 0.947);
+  transition: width 0.35s ease, margin-left 0.35s ease;
+}
+/* when sidebar expands on hover, shrink dashboard accordingly */
+.sidebar:hover ~ .dashboard {
+  width: calc(100% - 150px);
+  margin-left: 150px;
+}
+.head{
+  padding-left: 10px;
+  color: #fff;
+}
+.head h3{
+  padding-top: 20px;
+}
+
+.top-cards .cards {
+  display: grid;
+  grid-template-columns: repeat(5, 190px) 40px 190px;
+  gap: 20px;
+  padding-left: 10px;
+  align-items: center;
+  padding-top: 25px;
+}
+
+.cards {
+  margin-top: 12px;
+}
+
+/* styling first card */
+.top-cards .card {
+  background-color: #2b2f77;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+.top-cards .card p {
+  text-align: left;
+  font-weight: 400;
+  color: white;
+} 
+
+.top-cards .card h2 {
+  text-align: left;
+  font-weight: bold;
+  color: white;
+} 
+.predicted-churn-probability {
+  background-color: #1c1e3b;
+  height: 300px;
+  width: 400px;
+  border-radius: 15px;
+  border: 2px solid #22243f;
+  margin-top: 8px;
+  padding-left: 15px;
+}
+
+.customer-segmentation {
+  background-color: #1c1e3b;
+  height: 400px;
+  width: 984px;
+  border-radius: 15px;
+  border: 2px solid #22243f;
+  margin-top: 8px;
+  padding-left: 15px;
+}
+
+.predicted-churn-probability h2,
+.customer-segmentation h2,
+.model-performance h2,
+.Actual-Predicted-Churn h2,
+.churn-reasons h2 {
+  font-size: 1rem;
+  color: white;
+  font-weight: 700;
+  padding-top: 10px;
+}
+
+
+.charts-row {
+  display: flex;
+  gap: 12px;
+  padding-left: 10px;
+  margin-top: 8px;
+  padding-top: 20px;
+}
+
+.left-chart-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.right-chart-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.model-performance {
+  background-color: #1c1e3b;
+  height: 400px;
+  width: 984px;
+  border-radius: 15px;
+  border: 2px solid #22243f;
+  margin-top: 8px;
+  padding-left: 15px;
+
+}
+
+.performance {
+  display: flex;
+  justify-content: right;
+}
+
+.Actual-Predicted-Churn {
+  background-color: #1c1e3b;
+  height: 300px;
+  width: 400px;
+  border-radius: 15px;
+  border: 2px solid #22243f;
+  margin-top: 8px;
+  padding-left: 15px;
+
+}
+
+.churn-reasons {
+  background-color: #1c1e3b;
+  height: 300px;
+  width: 400px;
+  border-radius: 15px;
+  border: 2px solid #22243f;
+  margin-top: 8px;
+  padding-left: 15px;
+
+}
+/* slide in from below animation for dashboard page */
+@keyframes slideUpFromBelow {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* apply animation to body on page load */
+body {
+  animation: slideUpFromBelow 0.9s ease-out;
+}

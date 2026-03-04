@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <span class="logo-icon">📊</span>
+      <span class="logo-text">FCCPS</span>
+    </div>
+
+    <ul>
+      <li class="active">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+        <span>Dashboard</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <circle cx="9" cy="7" r="4" />
+          <path d="M2 21v-2c0-2.21 3.58-4 8-4s8 1.79 8 4v2" />
+        </svg>
+        <span>Customers</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <path d="M23 18l-6-6-4 4-8-8" />
+          <path d="M17 12h6v6" />
+        </svg>
+        <span>Churn</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <path d="M3 3v18h18" />
+          <path d="M7 14l4-4 4 4 4-8" />
+        </svg>
+        <span>Analytics</span>
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a7.97 7.97 0 000-6" />
+        </svg>
+        <span>Settings</span>
+      </li>
+    </ul>
+  </div>
+  </div>
+  <div class="dashboard">
+    <div class="dashboard-main-bg">
+      <div class="head">
+        <h3>Financial Customer Churn Prediction</h3>
+      </div>
+      <div class="top-cards">
+        <div class="cards">
+          <div class="card">
+            <p>Total Customer</p>
+            <h2>24,456</h2>
+          </div>
+          <div class="card">
+            <p>Active Customer</p>
+            <h2>21,254</h2>
+          </div>
+          <div class="card">
+            <p>Churned Customer</p>
+            <h2>9,458</h2>
+          </div>
+          <div class="card">
+            <p>Predicted</p>
+            <h2>11.5%</h2>
+          </div>
+          <div class="card">
+            <p>Revenue at Risk</p>
+            <h2>$94,458</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="left-chart-column">
+          <div class="predicted-churn-probability">
+            <h2>Predicted Churn Probability</h2>
+          </div>
+          <div class="Actual-Predicted-Churn">
+            <h2>Actual vs Predicted Churn</h2>
+          </div>
+          <div class="churn-reasons">
+            <h2>Churn Reasons</h2>
+          </div>
+        </div>
+        <div class="right-chart-column">
+          <div class="customer-segmentation">
+            <h2>Customer Segmentation</h2>
+          </div>
+          <div class="model-performance">
+            <h2>Model Performance</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+
+</html>

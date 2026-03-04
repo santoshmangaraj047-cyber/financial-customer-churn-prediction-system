@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>customer churn prediction</title>
+    <link rel="stylesheet" href="home.css">
+    <script src="script1.js"></script>
+<body>
+    <header>
+        <nav class="navbar">
+
+            <a href="#" class="nav-logo">
+                <h2 class="logo-text">FCCPS</h2>
+            </a>
+            <ul class="navbar-items">
+                <li class="nav-links">
+                    <a href="#home" class="item"> Home</a>
+                </li>
+                <li class="nav-bar">
+                    <a href="#features" class="item"> Features</a>
+                </li>
+                <li class="nav-bar">
+                    <a href="#Model-training" class="item"> Model Training</a>
+                </li>
+                <li class="nav-bar">
+                    <a href="#footer" class="item"> About us</a>
+                </li>
+                <li class="nav-bar">
+                    <a href="#footer" class="item"> Contact us</a>
+                </li>
+            </ul>
+            <div class="start"><button class="start-btn">Start</button></div>
+
+
+        </nav>
+    </header>
+    <main>
+        <section class="main-section" id="home">
+            <div class="section-details">
+                <b>
+                    <p class="main-text">Let's Get Started</p>
+                </b>
+
+                <div class="login" onclick="window.location.href='login.jsx'">
+                    <a href="#" class="start">Get Started</a>
+
+                </div>
+            </div>
+        </section>
+        <section class="features-section" id="features">
+            <h2 class="features-title">Why We Need FCCPS?</h2>
+            <p>Powerful capabilities designed to help you predict customer churn and take proactive retention actions.
+            </p>
+            <div class="features-container">
+                <div class="features-card">
+                    <h3>🔒Revenue Protection</h3>
+                    <p>Helps safeguard existing and future income streams associated with customer accounts, loans, and
+                        other financial products.</p>
+                </div>
+                <div class="features-card">
+                    <h3>💸Cost Efficiency</h3>
+                    <p>Retaining existing customers is estimated to be five to seven times cheaper than attracting new
+                        ones.</p>
+                </div>
+                <div class="features-card">
+                    <h3>⚡Profitability Boost</h3>
+                    <p>A mere 5% increase in customer retention rates can lead to a 25% to 95% increase in profits.</p>
+                </div>
+                <div class="features-card">
+                    <h3>🎯Targeted Retention</h3>
+                    <p>Identifies specific at-risk customers, allowing for personalized interventions and offers to
+                        address their unique concerns and needs.</p>
+                </div>
+                <div class="features-card">
+                    <h3>🌟Enhanced Reputation</h3>
+                    <p>Proactive churn management and improved customer satisfaction can reduce negative word-of-mouth
+                        and strengthen the brand's reputation and trust.</p>
+                </div>
+                <div class="features-card">
+                    <h3>🔍Product Improvement Insights</h3>
+                    <p>Analyzing why customers might leave helps financial institutions pinpoint weaknesses in their
+                        services or products, guiding future improvements.</p>
+                </div>
+                <div class="features-card">
+                    <h3>🚀Competitive Advantage</h3>
+                    <p>Enables institutions to respond quickly to customer needs and market changes, staying ahead of
+                        competitors.</p>
+                </div>
+                <div class="features-card">
+                    <h3>💰Better Financial Planning</h3>
+                    <p>Provides data-driven insights for more accurate forecasting of revenue and efficient allocation
+                        of resources for retention campaigns.</p>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            //for changing nav color on scroll
+            window.addEventListener('scroll', function () {
+                const header = document.querySelector('header');
+                const featureSection = document.querySelector('.features-section');
+                const featureSectionTop = featureSection.offsetTop;
+                const currentScrollPosition = window.scrollY;
+
+                if (currentScrollPosition >= featureSectionTop - 60) {
+                    header.style.background = 'rgba(0, 0, 0, 1)';
+                } else {
+                    header.style.background = 'linear-gradient(to bottom right, #001845, #023E7D, #0466C8)';
+                }
+            });
+            $(window).scroll(function () {
+                $(".third-section h2").css("opacity", 1 - $(window).scrollTop() / 250)
+            });
+
+
+        </script>
+
+        <section class="third-section" id="Model-training">
+            <strong>
+                <h2>A powerful prediction of churn</h2>
+            </strong>
+            <div class="reveal-container">
+                <h1 class=" reveal">
+                    <span>Financial</span> <span>customer</span> <span>churn</span> <span>prediction</span>
+                    <span>is</span> <span>the</span> <span>process</span> <span>of</span> <span>using</span>
+                    <span>machine</span> <span>learning</span> <span>algorithms</span> <span>and</span> <span>data
+                    </span> <span>analytics</span> <span>to</span> <span>identify</span> <span>customers</span>
+                    <span>at</span> <span>high</span> <span>risk</span> <span>of</span> <span>closing</span>
+                    <span>their</span> <span>accounts, </span> <span>reducing</span> <span>their</span>
+                    <span>product</span> <span>usage,</span> <span>or </span> <span>switching</span> <span>to </span>
+                    <span>a</span> <span>competitor.</span> <span>By </span> <span>analyzing</span>
+                    <span>historical</span> <span>data—such</span> <span>as</span> <span>transaction</span>
+                    <span>history, </span> <span>demographics </span> <span>information,</span> <span>service</span>
+                    <span>interactions,</span> <span>and</span> <span>product</span> <span>usage</span>
+                    <span>patterns—financial</span> <span>institutions</span> <span>can</span> <span>pinpoint</span>
+                    <span>behavioral</span> <span>indicators</span> <span>of</span> <span>disengagement</span>
+                    <span>or</span> <span>dissatisfaction.</span><br><br>
+                    <span>This</span> <span>proactive, </span> <span>data-driven</span> <span>approach</span>
+                    <span>allows</span> <span>banks</span> <span>and</span> <span>financial</span> <span>firms</span>
+                    <span>to</span> <span>intervene</span> <span>with</span> <span>targeted</span>
+                    <span>retention</span> <span>strategies,</span> <span>such</span> <span>as</span>
+                    <span>personalized</span> <span>offers, </span><span>improved </span> <span>service,</span>
+                    <span>or</span> <span>loyalty</span> <span>incentives,</span> <span>before</span> <span>the
+                    </span><span>customer</span> <span>actually</span> <span>leaves.</span> <span>Implementing</span>
+                    <span>these</span> <span>models</span> <span>is</span> <span>critical</span> <span>for</span>
+                    <span>minimizing</span> <span>revenue</span> <span>loss</span> <span>and</span>
+                    <span>maintaining</span> <span>profitability,</span> <span>as</span> <span>acquiring </span>
+                    <span>new</span> <span>customers</span> <span>is</span> <span>significantly</span> <span>more</span>
+                    <span>expensive</span> <span>than</span> <span>retaining</span> <span>existing</span>
+                    <span>ones.</span>
+                </h1>
+            </div>
+        </section>
+        <section class="fourth-section">
+            <p class="fourth-main-para1">Stop loosing customer </p>
+            <p class="fourth-main-para2">before you see it coming</p>
+            <pre>Predict which customers will leave and act before they do. Our system identifies churn risk with 
+precision, giving your institution the edge it needs to retain revenue and relationships.</pre>
+            <div class="learn"><button class="learn-btn">Learn</button></div>
+            <!-- slider-section -->
+            <div class="slider-container">
+
+                <div class="slider">
+                    <div class="slider-holder">
+                        <div id="slider-img1"></div>
+                        <div id="slider-img2"></div>
+                        <div id="slider-img3"></div>
+                        <div id="slider-img4"></div>
+                    </div>
+                    <div class="button-holder">
+                        <a href="#slider-img1" class="button1"></a>
+                        <a href="#slider-img2" class="button2"></a>
+                        <a href="#slider-img3" class="button3"></a>
+                        <a href="#slider-img4" class="button4"></a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <script>
+            // Scroll reveal animation for text spans
+            const revealContainer = document.querySelector('.reveal-container');
+            const spans = document.querySelectorAll('.reveal span');
+            let visibleCount = 0;
+
+            function updateRevealAnimation() {
+                if (!revealContainer) return;
+
+                const containerRect = revealContainer.getBoundingClientRect();
+                const containerTop = containerRect.top;
+                const containerBottom = containerRect.bottom;
+                const windowHeight = window.innerHeight;
+
+                // Calculate progress based on scroll position
+                let scrollProgress = 0;
+                if (containerTop < windowHeight && containerBottom > 0) {
+                    // Container is in viewport
+                    scrollProgress = 1 - (containerTop / windowHeight);
+                    scrollProgress = Math.max(0, Math.min(1, scrollProgress));
+                } else if (containerTop >= windowHeight) {
+                    // Container is below viewport
+                    scrollProgress = 0;
+                } else {
+                    // Container is above viewport
+                    scrollProgress = 1;
+                }
+
+                // Calculate how many spans should be visible
+                const totalSpans = spans.length;
+                const shouldBeVisible = Math.round(scrollProgress * totalSpans);
+
+                // Update visibility of each span
+                spans.forEach((span, index) => {
+                    if (index < shouldBeVisible) {
+                        if (!span.classList.contains('visible')) {
+                            span.classList.add('visible');
+                        }
+                    } else {
+                        span.classList.remove('visible');
+                    }
+                });
+            }
+
+            // Listen to scroll event
+            window.addEventListener('scroll', updateRevealAnimation);
+
+            // Initial call to set initial state
+            updateRevealAnimation();
+
+        </script>
+        <section class="fifth">
+            <div class="heading">
+                <h2 class="fifth-heading"> What Do You Gain</h2>
+            </div>
+            <pre>Financial institution using our sytem see measurable improvements in retention and revenue</pre>
+            <pre> The number speaks for themeselves when you know who's leaving before they leave</pre>
+            <p class="security-container">The system handles sensitive financial and personal customer data, so strong
+                security
+                measures such as encrypted data transmission, secure authentication, and role-based access control are
+                essential. Proper validation of user inputs and protection against common web threats like data leakage
+                and
+                unauthorized access help maintain system reliability. In addition, secure data storage, regular security
+                updates, and compliance with financial data protection standards ensure customer privacy and trust. A
+                well-secured web interface not only safeguards information but also enhances user confidence in the
+                system’s
+                predictions and services.</p>
+
+            <div class="option">
+
+                <!-- Item 1 -->
+                <div class="option-item">
+                    <div class="option-header">
+                        <h3>Retention Gain</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+
+                    <p class="discover">Discover</p>
+
+                    <div class="option-content">
+                        <p>
+                            Improves customer loyalty by providing personalized experiences,
+                            faster interactions, and consistent engagement that keeps users
+                            coming back.This targeted approach increases the effectiveness of retention campaigns, reduces unnecessary marketing costs, and maximizes the overall return on investment. 
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Item 2  -->
+                <div class="option-item">
+                    <div class="option-header">
+                        <h3>Revenue Impact</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+
+                    <p class="discover">Discover</p>
+
+                    <div class="option-content">
+                        <p>
+                            Drives revenue growth by increasing customer lifetime value,
+                            improving conversion rates, and reducing acquisition costs.By identifying customers who are likely to leave and taking timely action, businesses can retain valuable customers and protect recurring revenue streams. 
+                        </p>
+                    </div>
+                </div>
+                <!-- item 3 -->
+
+                <div class="option-item">
+                    <div class="option-header">
+                        <h3>Operational Efficiency</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+
+                    <p class="discover">Discover</p>
+
+                    <div class="option-content">
+                        <p>
+                           The ability to streamline business processes by using data-driven insights to manage customer retention more effectively. By identifying high-risk customers in advance, organizations can prioritize their efforts and allocate resources more efficiently, reducing time and operational costs. 
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script>
+            // Only one option-item open at a time; open after a short delay with a smooth transition
+            const items = document.querySelectorAll('.option-item');
+            const OPEN_DELAY = 60; // milliseconds
+            const OPEN_DURATION = 220; // ms for the smooth open
+
+            function closeImmediate(elem) {
+                elem.classList.remove('active');
+                const content = elem.querySelector('.option-content');
+                if (!content) return;
+                // remove transition and collapse immediately
+                content.style.transition = 'none';
+                content.style.maxHeight = '0px';
+                void content.offsetHeight; // force reflow
+                content.style.transition = '';
+            }
+
+            function openWithDelay(elem) {
+                const content = elem.querySelector('.option-content');
+                if (!content) return;
+                // ensure collapsed state first
+                content.style.transition = 'none';
+                content.style.maxHeight = '0px';
+                void content.offsetHeight;
+
+                setTimeout(() => {
+                    elem.classList.add('active');
+                    // apply smooth transition and expand to content height
+                    content.style.transition = `max-height ${OPEN_DURATION}ms ease`;
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    // clear inline transition after animation completes to keep styles clean
+                    setTimeout(() => { content.style.transition = ''; }, OPEN_DURATION + 40);
+                }, OPEN_DELAY);
+            }
+
+            items.forEach(item => {
+                const header = item.querySelector('.option-header');
+                const discover = item.querySelector('.discover');
+
+                function handleClick() {
+                    const wasActive = item.classList.contains('active');
+                    // close all immediately
+                    items.forEach(i => closeImmediate(i));
+                    // open selected one after a short delay
+                    if (!wasActive) openWithDelay(item);
+                }
+
+                header.addEventListener('click', handleClick);
+                discover.addEventListener('click', handleClick);
+            });
+
+            // initialize states
+            items.forEach(item => {
+                const content = item.querySelector('.option-content');
+                if (!content) return;
+                if (item.classList.contains('active')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                } else {
+                    content.style.maxHeight = '0px';
+                }
+            });
+
+            // update sizing on resize
+            window.addEventListener('resize', () => {
+                items.forEach(item => {
+                    if (item.classList.contains('active')) {
+                        const content = item.querySelector('.option-content');
+                        if (content) content.style.maxHeight = content.scrollHeight + 'px';
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            // Auto-advance slider every 3 seconds, loop infinitely (forward only)
+            let currentSlide = 1;
+            const totalSlides = 4;
+            const slideInterval = 3000; // 3 seconds
+            let sliderTimeout = null;
+
+            function updateButtonState() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.button-holder a').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active class to current slide button
+                const activeBtn = document.querySelector(`.button-holder .button${currentSlide}`);
+                if (activeBtn) activeBtn.classList.add('active');
+            }
+
+            function advanceSlide() {
+                const sliderHolder = document.querySelector('.slider-holder');
+                if (!sliderHolder) return;
+
+                currentSlide++;
+                // Loop back to 1 after reaching last slide
+                if (currentSlide > totalSlides) {
+                    currentSlide = 1;
+                    // Instantly jump to image 1 without animation
+                    sliderHolder.style.transition = 'none';
+                    sliderHolder.style.transform = 'translateX(0%)';
+                    // Force reflow
+                    void sliderHolder.offsetHeight;
+                    // Re-enable transition for next movement
+                    setTimeout(() => {
+                        sliderHolder.style.transition = '';
+                    }, 50);
+                } else {
+                    const offset = (currentSlide - 1) * 100;
+                    sliderHolder.style.transform = `translateX(-${offset}%)`;
+                }
+                updateButtonState();
+                // Always schedule next advance
+                sliderTimeout = setTimeout(advanceSlide, slideInterval);
+            }
+
+            // Wait 3 seconds on page load before first transition
+            window.addEventListener('load', () => {
+                updateButtonState();
+                sliderTimeout = setTimeout(advanceSlide, slideInterval);
+            });
+
+            // Reset timer if user manually clicks a button
+            document.querySelectorAll('.button-holder a').forEach((btn, index) => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    clearTimeout(sliderTimeout);
+                    currentSlide = index + 1;
+                    const sliderHolder = document.querySelector('.slider-holder');
+                    if (sliderHolder) {
+                        sliderHolder.style.transition = '';
+                        const offset = (currentSlide - 1) * 100;
+                        sliderHolder.style.transform = `translateX(-${offset}%)`;
+                    }
+                    updateButtonState();
+                    // Restart timer
+                    sliderTimeout = setTimeout(advanceSlide, slideInterval);
+                });
+            });
+        </script>
+
+        <!-- section for about us and contact us -->
+        <footer class="footer" id="footer">
+            <div class="footer-section">
+                <!-- about us -->
+                <div class="about-us">
+                    <h3 class="about">About us</h3>
+                    <pre>
+We are a team of 5 developers building a financial
+customer churn prediction system. Our goal is to help businesses
+analyze customer behavior and reduce churn using smart insights.
+                    </pre><br>
+                    <pre>
+This system helps reduce the risk of customers who are likely to
+leave the bank by identifying early warning signs of churn. It
+enables the bank to understand the key reasons why customers 
+intend to leave and take proactive measures to address their
+concerns. By minimizing customer churn, the bank can improve
+customer retention and increase overall profitability. The 
+system provides timely insights before a customer actually
+leaves, allowing the bank to implement targeted retention 
+strategies.
+                     </pre>
+                    <div class="features">
+                        <div class="feature">🪙Profitability Boost</div>
+                        <div class="feature">📊 Data Insights</div>
+                        <div class="feature">⚡ Real-Time</div>
+                    </div>
+                </div>
+                <!-- concat us -->
+                <div class="contact-us">
+                    <h3 class="contact">Contact us</h3>
+                    <div class="member-section">
+                        <!-- Member 1 -->
+                        <div class="member">
+                            <h4>Arpita Dipti Rajan</h4>
+                            <div class="links">
+                                <p>LinkedIn:<a href="https://www.linkedin.com/in/arpita-dipti-rajan-8bb9273a0?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">Arpita Dipti Rajan</a><br></p>
+                                <p>GitHub:<a href="https://github.com/rajanarpitadipti" target="_blank">rajanarpitadipti</a><br></p>
+                                <p>Gmail:<a href="mailto: rajanarpitadipti@gmail.com">rajanarpitadipti@gmail.com</a></p>
+                            </div>
+                        </div>
+                        <!-- Member 2 -->
+                        <div class="member">
+                            <h4>Itishree Behera</h4>
+                            <div class="links">
+                                <p>LinkedIn:<a href="www.linkedin.com/in/itishree-behera-177e45" target="_blank">Itishree behera</a><br></p>
+                                <p>GitHub:<a href="https://github.com/itishreebehera533-boop"
+                                        target="_blank">itishreebehera533-boop</a><br></p>
+                                <p>Gmail:<a href="mailto:itishreebehera533@gmail.com">itishreebehera533@gmail.com</a>
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Member 3 -->
+                        <div class="member">
+                            <h4>Piyush Barik</h4>
+                            <div class="links">
+                                <p>LinkedIn:<a href="www.linkedin.com/in/piyush-barik-753b84383" target="_blank">Piyush Barik</a><br></p>
+                                <p>GitHub:<a href=" https://github.com/barik-piyush" target="_blank">barik-piyush</a><br></p>
+                                <p>Gmail:<a href="mailto:piyushofficials05@gmail.com">piyushofficials05@gmail.com</a></p>
+                            </div>
+                        </div>
+                        <!-- Member 4 -->
+                        <div class="member">
+                            <h4>Rahul Arbind</h4>
+                            <div class="links">
+                                <p>LinkedIn:<a href="https://www.linkedin.com/in/rahularbind?utm_source=share_via&utm_content=profile&utm_medium=member_ios" target="_blank">Rahul Arbind</a><br></p>
+                                <p>GitHub:<a href="https://github.com/BlakeXHunt" target="_blank">BlakeXHunt</a><br></p>
+                                <p>Gmail:<a href="mailto:arbindrahul81@gmail.com">arbindrahul81@gmail.com</a></p>
+                            </div>
+                        </div>
+                        <!-- Member 5 -->
+                        <div class="member">
+                            <h4>Santosh Kumar Mangaraj</h4>
+                            <div class="links">
+                                <p>LinkedIn:<a href="https://www.linkedin.com/in/santosh-kumar-mangaraj-7361333a4" target="_blank">Santosh ku. Mangaraj</a><br></p>
+                                <p>GitHub:<a href="https://github.com/santoshmangaraj047-cyber" target="_blank">santoshmangaraj047-cyber</a><br></p>
+                                <p>Gmail:<a href="mailto:santoshmangaraj047@gmail.com">santoshmangaraj047@gmail.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom line -->
+            <div class="footer-bottom">
+                © 2026 Churn Project All rights reserved • Built by Team of 5 • Services • Privacy policy 
+            </div>
+
+
+        </footer>
+</body>
+
+</html>
