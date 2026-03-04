@@ -15,15 +15,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-     role: {                  
+    role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user'
+      enum: ['bank', 'admin'],
+      default: 'bank',
+    },
+    approved: {
+      type: Boolean,
+      default: function() {
+        // Auto‑approve banks, admins need approval
+        return this.role === 'bank';
+      }
     },
   },
   { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
-
 export default User;

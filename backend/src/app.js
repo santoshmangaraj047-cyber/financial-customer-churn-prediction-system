@@ -1,44 +1,29 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
+import predictionRoutes from "./routes/prediction.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import errorMiddleware from "./middleware/error.middleware.js";
+import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
 
-
-// Initialize express app
 const app = express();
 
-
-// Global Middlewares
-
-
-// Enable CORS (frontend ↔ backend)
+// Middlewares
 app.use(cors());
-
-// Parse incoming JSON
 app.use(express.json());
 
-// Health Check Route
+// Rate limiting
+app.use(generalLimiter);          
+app.use('/api/auth', authLimiter); 
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "API is running 🚀",
-  });
-});
-
-// Routes 
+// Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/prediction", predictionRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
 
-
-// app.use("/api/auth", authRoutes);
-
-
-// 404 Handler
-
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
+// Error handler
+app.use(errorMiddleware);
 
 export default app;

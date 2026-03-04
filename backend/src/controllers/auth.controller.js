@@ -2,10 +2,10 @@ import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 
-// ========== REGISTER USER ==========
+// ==================== REGISTER ====================
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role = 'bank' } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -22,18 +22,23 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role,
+      approved: role === 'bank', // banks auto-approved, admins pending
     });
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: user.role === 'admin'
+        ? "Admin registration successful. Awaiting approval."
+        : "Registration successful. You can now log in.",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        approved: user.approved,
       },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -42,7 +47,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// ========== LOGIN USER ==========
+// ==================== LOGIN ====================
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -55,6 +60,13 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    if (!user.approved) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is pending approval by an admin.",
+      });
+    }
+
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       return res.status(401).json({
@@ -64,7 +76,12 @@ export const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role  },
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        approved: user.approved,
+      },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -77,9 +94,10 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        approved: user.approved,
       },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
