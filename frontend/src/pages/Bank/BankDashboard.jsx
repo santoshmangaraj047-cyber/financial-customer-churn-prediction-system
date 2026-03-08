@@ -4,7 +4,6 @@ import { AuthContext } from "../../context/AuthContext";
 import { getChurnDistribution } from "../../services/api";
 import ChurnChart from "../../components/ChurnChart";
 import ChurnPrediction from "./ChurnPrediction";
-import PredictionHistory from "./PredictionHistory";
 import Profile from "./Profile";
 
 const colors = {
@@ -23,7 +22,6 @@ const colors = {
 export default function BankDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 880);
   const [activeSection, setActiveSection] = useState("overview");
   const [churnData, setChurnData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +30,6 @@ export default function BankDashboard() {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 880);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const fetchChurnDistribution = async () => {
@@ -66,7 +59,6 @@ export default function BankDashboard() {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'customers', label: 'Customers', icon: '👥' },
     { id: 'predictions', label: 'Predictions', icon: '🔮' },
     { id: 'analytics', label: 'Analytics', icon: '📈' },
     { id: 'settings', label: 'Settings', icon: '⚙️' }
@@ -85,8 +77,14 @@ export default function BankDashboard() {
       <header style={styles.header}>
         <div style={styles.logo}>FCCPS Bank</div>
         <div style={styles.userMenu}>
-          <span style={styles.userName}>{user.name}</span>
-          <div style={styles.avatar}>{user.name?.charAt(0).toUpperCase()}</div>
+          <div style={styles.userIdentity}>
+            {user.profileImage ? (
+              <img src={user.profileImage} alt="Profile" style={styles.profileImage} />
+            ) : (
+              <div style={styles.avatar}>{user.name?.charAt(0).toUpperCase()}</div>
+            )}
+            <span style={styles.userName}>{user.name}</span>
+          </div>
           <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
         </div>
       </header>
@@ -142,8 +140,7 @@ export default function BankDashboard() {
             </>
           )}
 
-          {activeSection === 'customers' && <ChurnPrediction/>}
-          {activeSection === 'predictions' && <PredictionHistory />}
+          {activeSection === 'predictions' && <ChurnPrediction />}
           {activeSection === 'analytics' && (
             <div style={styles.placeholder}>
               <h2>Analytics</h2>
@@ -191,6 +188,12 @@ const styles = {
     alignItems: 'center',
     gap: '20px',
   },
+  userIdentity: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
+  },
   userName: {
     fontSize: '1rem',
     fontWeight: 500,
@@ -206,6 +209,14 @@ const styles = {
     fontSize: '1.2rem',
     fontWeight: 600,
     color: colors.white,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    border: `2px solid ${colors.accent}` ,
+    objectFit: 'cover',
+    background: colors.white,
   },
   logoutBtn: {
     padding: '8px 16px',
