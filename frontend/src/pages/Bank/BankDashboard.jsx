@@ -284,30 +284,121 @@ export default function BankDashboard() {
 
 
   useEffect(() => {
-    const fetchChurnDistribution = async () => {
-      try {
-        const res = await getChurnDistribution();
-        setChurnData(res.data.distribution || []);
-      } catch (error) {
-        console.error("Churn distribution fetch failed:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchChurnDistribution();
-  }, []);
+    if (!user) navigate("/login");
+  }, [user, navigate]);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const metrics = useMemo(() => [
-    { label: "Total Customers", value: "2,543", change: "+12%" },
-    { label: "Predicted Churn", value: "342", change: "+5%" },
-    { label: "Retention Rate", value: "86.5%", change: "+3%" },
-    { label: "Model Accuracy", value: "94.2%", change: "+2%" },
-  ], []);
+  const displaySession = pendingSession || sessions[0] || { stats: zeroStats, results: [] };
+
+  const derivedMetrics = useMemo(() => {
+    const total = displaySession.results?.length || 0;
+    const likely = displaySession.stats?.barData?.[0]?.value || 0;
+    const notLikely = displaySession.stats?.barData?.[1]?.value || 0;
+    const retention = total ? ((notLikely / total) * 100).toFixed(1) : '0.0';
+    const m = displaySession.stats?.matrix || { TP: 0, TN: 0, FP: 0, FN: 0 };
+    const correct = m.TP + m.TN;
+    const denom = m.TP + m.TN + m.FP + m.FN;
+    const accuracy = denom ? `${((correct / denom) * 100).toFixed(1)}%` : '-';
+    return [
+      { label: "Total Customers", value: total || '-' },
+      { label: "Predicted Churn", value: likely || '-' },
+      { label: "Retention Rate", value: `${retention}%` },
+      { label: "Model Accuracy", value: accuracy },
+    ];
+  }, [displaySession]);
+
+  const analyticsRows = useMemo(() => {
+    return sessions.flatMap((s) => s.results || []);
+  }, [sessions]);
+
+  const regionData = useMemo(() => {
+    const map = new Map();
+    analyticsRows.forEach((r) => {
+      const key = r.region || 'Unknown';
+      const curr = map.get(key) || { region: key, churn: 0, total: 0 };
+      curr.total += 1;
+      if (String(r.prediction).includes('Likely')) curr.churn += 1;
+      map.set(key, curr);
+    });
+    return Array.from(map.values()).map((r) => ({ region: r.region, churnRate: r.total ? Number(((r.churn / r.total) * 100).toFixed(1)) : 0 }));
+  }, [analyticsRows]);
+
+  const accountTypeData = useMemo(() => {
+    const map = new Map();
+    analyticsRows.forEach((r) => {
+      const key = r.accountType || 'Unknown';
+      const curr = map.get(key) || { type: key, churn: 0, total: 0 };
+      curr.total += 1;
+      if (String(r.prediction).includes('Likely')) curr.churn += 1;
+      map.set(key, curr);
+    });
+    return Array.from(map.values()).map((r) => ({ type: r.type, churnRate: r.total ? Number(((r.churn / r.total) * 100).toFixed(1)) : 0 }));
+  }, [analyticsRows]);
+
+  const highRiskRows = useMemo(() => analyticsRows.filter((r) => Number(r.probability) >= 0.7), [analyticsRows]);
+
+  const handleFileChange = async (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile && !getValidUploadType(selectedFile)) {
+      setFile(null);
+      setActualLabels([]);
+      setMetaRows([]);
+      setBulkError('Only CSV, XLSX, and XLS files are supported.');
+      return;
+    }
+
+    setFile(selectedFile);
+    setBulkError('');
+    const parsed = selectedFile ? await parseCsvForLabelsAndMeta(selectedFile) : { labels: [], metaRows: [] };
+    setActualLabels(parsed.labels);
+    setMetaRows(parsed.metaRows);
+  };
+
+  const handleRunPrediction = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setBulkError('Please select a dataset file.');
+      return;
+    }
+
+    setBulkLoading(true);
+    setBulkError('');
+
+    try {
+      const response = await bankBatchPredict(file);
+      const rawResults = response.data?.results || [];
+      const mergedResults = mapResultsWithMeta(rawResults, metaRows);
+      const stats = computeChartStats(mergedResults, actualLabels);
+
+      setPendingSession({
+        id: `${Date.now()}`,
+        fileName: file.name,
+        createdAt: new Date().toISOString(),
+        results: mergedResults,
+        stats,
+      });
+    } catch (err) {
+      setBulkError(err.response?.data?.message || err.message || 'Prediction failed');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const saveSessionResult = () => {
+    if (!pendingSession) return;
+    setSessions((prev) => [pendingSession, ...prev].slice(0, 20));
+    setPendingSession(null);
+  };
+
+  const clearSavedSessions = () => {
+    localStorage.removeItem(SESSION_KEY);
+    setSessions([]);
+    setPendingSession(null);
+  };
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -317,11 +408,7 @@ export default function BankDashboard() {
   ];
 
   if (!user) {
-    return (
-      <div style={styles.loaderWrapper}>
-        <p style={{ color: '#fff' }}>Loading...</p>
-      </div>
-    );
+    return <div style={styles.loaderWrapper}><p style={{ color: '#fff' }}>Loading...</p></div>;
   }
 
   return (
@@ -346,16 +433,10 @@ export default function BankDashboard() {
           {navItems.map(item => (
             <button
               key={item.id}
-              style={{
-                ...styles.navItem,
-                backgroundColor: activeSection === item.id ? colors.accent : 'transparent'
-              }}
+              style={{ ...styles.navItem, backgroundColor: activeSection === item.id ? colors.accent : 'transparent' }}
               onClick={() => setActiveSection(item.id)}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = activeSection === item.id ? colors.accent : 'rgba(255,255,255,0.1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = activeSection === item.id ? colors.accent : 'transparent'}
             >
-              <span style={styles.navIcon}>{item.icon}</span>
-              {item.label}
+              <span style={styles.navIcon}>{item.icon}</span>{item.label}
             </button>
           ))}
         </aside>
@@ -364,18 +445,12 @@ export default function BankDashboard() {
           {activeSection === 'overview' && (
             <>
               <h2 style={styles.pageTitle}>Dashboard Overview</h2>
+
               <div style={styles.metricsGrid}>
-                {metrics.map((metric) => (
+                {derivedMetrics.map((metric) => (
                   <div key={metric.label} style={styles.metricCard}>
                     <p style={styles.metricLabel}>{metric.label}</p>
                     <h3 style={styles.metricValue}>{metric.value}</h3>
-                    <p style={{
-                      color: metric.change.includes('+') ? colors.success : colors.danger,
-                      fontSize: '0.85rem',
-                      fontWeight: 600
-                    }}>
-                      {metric.change} from last month
-                    </p>
                   </div>
                 ))}
               </div>
@@ -383,24 +458,98 @@ export default function BankDashboard() {
               <UploadDatasetSection />
 
               <div style={styles.cardContainer}>
-                <h3 style={styles.cardTitle}>Churn Distribution</h3>
-                {loading ? <p>Loading chart...</p> : <ChurnChart data={churnData} />}
+                <h3 style={styles.cardTitle}>Upload Dataset</h3>
+                <form onSubmit={handleRunPrediction}>
+                  <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} style={{ marginBottom: 12 }} />
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button style={styles.primaryBtn} type="submit" disabled={!file || bulkLoading}>{bulkLoading ? 'Processing...' : 'Run Prediction'}</button>
+                    {pendingSession && <button type="button" style={styles.secondaryBtn} onClick={saveSessionResult}>Save Session Result</button>}
+                    {!!sessions.length && <button type="button" style={styles.dangerBtn} onClick={clearSavedSessions}>Clear Sessions</button>}
+                  </div>
+                </form>
+                {bulkError && <p style={{ color: colors.danger, marginTop: 10 }}>{bulkError}</p>}
+                {pendingSession && <p style={{ color: colors.warning, marginTop: 10 }}>Prediction is ready. Click "Save Session Result" to persist it.</p>}
               </div>
 
-              <div style={styles.cardContainer}>
-                <h3 style={styles.cardTitle}>Model Performance</h3>
-                <div style={styles.placeholder}>📈 Line Chart Placeholder</div>
+              <div style={styles.grid}>
+                <div style={styles.cardContainer}><h3 style={styles.cardTitle}>Bar Chart</h3><ResponsiveContainer width="100%" height={250}><BarChart data={displaySession.stats?.barData || zeroStats.barData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="label" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="value" fill={colors.accent} /></BarChart></ResponsiveContainer></div>
+                <div style={styles.cardContainer}><h3 style={styles.cardTitle}>Pie Chart</h3><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={displaySession.stats?.pieData || zeroStats.pieData} dataKey="value" nameKey="name" label>{(displaySession.stats?.pieData || zeroStats.pieData).map((entry, index) => (<Cell key={entry.name || index} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></div>
+                <div style={styles.cardContainer}><h3 style={styles.cardTitle}>Histogram</h3><ResponsiveContainer width="100%" height={250}><BarChart data={displaySession.stats?.bins || zeroStats.bins}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="range" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="count" fill={colors.secondary} /></BarChart></ResponsiveContainer></div>
+
+                <div style={styles.cardContainer}>
+                  <h3 style={styles.cardTitle}>Confusion Matrix</h3>
+                  <div style={styles.matrixGrid}>
+                    <div style={styles.matrixCell}>TP: {displaySession.stats?.matrix?.TP ?? 0}</div>
+                    <div style={styles.matrixCell}>FP: {displaySession.stats?.matrix?.FP ?? 0}</div>
+                    <div style={styles.matrixCell}>FN: {displaySession.stats?.matrix?.FN ?? 0}</div>
+                    <div style={styles.matrixCell}>TN: {displaySession.stats?.matrix?.TN ?? 0}</div>
+                  </div>
+                </div>
+
+                <div style={{ ...styles.cardContainer, gridColumn: '1 / -1' }}>
+                  <h3 style={styles.cardTitle}>ROC / AUC Curve</h3>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={displaySession.stats?.rocData || zeroStats.rocData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="fpr" type="number" domain={[0, 1]} />
+                      <YAxis dataKey="tpr" type="number" domain={[0, 1]} />
+                      <Tooltip formatter={(v) => Number(v).toFixed(2)} />
+                      <Legend />
+                      <Line type="monotone" dataKey="tpr" stroke={colors.accent} dot={false} name="ROC Curve" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </>
           )}
 
           {activeSection === 'predictions' && <ChurnPrediction />}
           {activeSection === 'analytics' && (
-            <div style={styles.placeholder}>
-              <h2>Analytics</h2>
-              <p>Advanced analytics coming soon.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <h2 style={styles.pageTitle}>Analytics</h2>
+
+              <div style={styles.grid}>
+                <div style={styles.cardContainer}>
+                  <h3 style={styles.cardTitle}>Region-wise Churn</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={regionData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="region" /><YAxis /><Tooltip /><Bar dataKey="churnRate" fill={colors.accent} name="Churn %" /></BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div style={styles.cardContainer}>
+                  <h3 style={styles.cardTitle}>Account Type Churn</h3>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={accountTypeData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="type" /><YAxis /><Tooltip /><Bar dataKey="churnRate" fill={colors.secondary} name="Churn %" /></BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div style={styles.cardContainer}>
+                <h3 style={styles.cardTitle}>High-Risk Customers List</h3>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <button style={styles.primaryBtn} onClick={() => exportRows(highRiskRows, 'csv', 'analytics-report')}>Export CSV</button>
+                  <button style={styles.secondaryBtn} onClick={() => exportRows(highRiskRows, 'xlsx', 'analytics-report')}>Export Excel</button>
+                  <button style={styles.dangerBtn} onClick={() => exportPdf(highRiskRows)}>Export PDF</button>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead><tr><th style={styles.th}>Name</th><th style={styles.th}>Probability</th><th style={styles.th}>Region</th><th style={styles.th}>Account Type</th></tr></thead>
+                    <tbody>
+                      {highRiskRows.map((r, i) => (
+                        <tr key={`${r.name}-${i}`}>
+                          <td style={styles.td}>{r.name}</td>
+                          <td style={styles.td}>{(Number(r.probability) * 100).toFixed(1)}%</td>
+                          <td style={styles.td}>{r.region || 'Unknown'}</td>
+                          <td style={styles.td}>{r.accountType || 'Unknown'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
+
           {activeSection === 'settings' && <Profile />}
         </main>
       </div>
