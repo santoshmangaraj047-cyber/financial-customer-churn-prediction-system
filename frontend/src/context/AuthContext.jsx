@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getProfile } from '../services/api';
-
 import { AuthContext } from './auth-context';
 
 const USER_PREFS_STORAGE_KEY = 'user_profile_prefs';
@@ -54,6 +53,7 @@ export const AuthProvider = ({ children }) => {
       }
       setIsLoading(false);
     };
+
     loadUser();
   }, [token]);
 

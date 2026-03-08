@@ -16,7 +16,8 @@ import {
   YAxis,
 } from 'recharts';
 import { AuthContext } from "../../context/auth-context";
-import { bankBatchPredict } from "../../services/api";
+import { bankBatchPredict, getChurnDistribution } from "../../services/api";
+import ChurnChart from "../../components/ChurnChart";
 import ChurnPrediction from "./ChurnPrediction";
 import Profile from "./Profile";
 
@@ -33,77 +34,30 @@ const colors = {
   danger: '#ef4444'
 };
 
-const SESSION_KEY = 'bank_prediction_chart_sessions';
 const PIE_COLORS = [colors.danger, colors.success, colors.warning];
+const SESSION_KEY = 'bank_prediction_chart_sessions';
 
-const zeroStats = {
-  barData: [
-    { label: 'Likely to Churn', value: 0 },
-    { label: 'Not Likely', value: 0 },
-  ],
-  pieData: [{ name: 'No Data', value: 1 }],
-  bins: [
-    { range: '0.0-0.2', count: 0 },
-    { range: '0.2-0.4', count: 0 },
-    { range: '0.4-0.6', count: 0 },
-    { range: '0.6-0.8', count: 0 },
-    { range: '0.8-1.0', count: 0 },
-  ],
-  matrix: { TP: 0, TN: 0, FP: 0, FN: 0 },
-  rocData: [
-    { fpr: 0, tpr: 0 },
-    { fpr: 1, tpr: 1 },
-  ],
-  hasActualLabels: false,
-};
-
-const normalize = (s = '') => String(s).trim().toLowerCase().replace(/[ _]/g, '');
-
-const getValidUploadType = (file) => {
-  if (!file) return false;
-  const ext = `.${String(file.name || '').split('.').pop()?.toLowerCase() || ''}`;
-  const validExt = ['.csv', '.xlsx', '.xls'];
-  const mime = String(file.type || '').toLowerCase();
-  const validMime = mime.includes('csv') || mime.includes('excel') || mime.includes('spreadsheetml');
-  return validExt.includes(ext) || validMime;
-};
-
-const parseCsvForLabelsAndMeta = async (file) => {
-  const ext = `.${String(file.name || '').split('.').pop()?.toLowerCase() || ''}`;
-  if (ext !== '.csv') return { labels: [], metaRows: [] };
-
+const parseCsvActualLabels = async (selectedFile) => {
   try {
-    const text = await file.text();
+    const text = await selectedFile.text();
     const [headerLine, ...rows] = text.split(/\r?\n/).filter(Boolean);
-    const headers = headerLine.split(',').map((h) => h.trim());
-    const normalizedHeaders = headers.map(normalize);
-    const labelIdx = normalizedHeaders.findIndex((h) => ['exited', 'churn', 'label', 'target'].includes(h));
-    const regionIdx = normalizedHeaders.findIndex((h) => ['geography', 'region', 'state'].includes(h));
-    const accountIdx = normalizedHeaders.findIndex((h) => ['accounttype', 'accounttype', 'account_type', 'product'].includes(h));
+    if (!headerLine) return [];
 
-    const labels = [];
-    const metaRows = [];
+    const headers = headerLine.split(',').map((h) => h.trim().toLowerCase());
+    const exitedIndex = headers.findIndex((h) => ['exited', 'churn', 'label', 'target'].includes(h));
+    if (exitedIndex < 0) return [];
 
-    rows.forEach((row) => {
-      const cols = row.split(',');
-      if (labelIdx >= 0) {
-        const val = Number.parseInt(String(cols[labelIdx] || '').trim(), 10);
-        if (val === 0 || val === 1) labels.push(val);
-      }
-      metaRows.push({
-        region: regionIdx >= 0 ? (cols[regionIdx] || 'Unknown').trim() : 'Unknown',
-        accountType: accountIdx >= 0 ? (cols[accountIdx] || 'Unknown').trim() : 'Unknown',
-      });
-    });
-
-    return { labels, metaRows };
+    return rows
+      .map((row) => row.split(',')[exitedIndex])
+      .map((raw) => Number.parseInt(String(raw).trim(), 10))
+      .filter((val) => val === 0 || val === 1);
   } catch {
-    return { labels: [], metaRows: [] };
+    return [];
   }
 };
 
 const computeChartStats = (results = [], actualLabels = []) => {
-  if (!results.length) return zeroStats;
+  if (!results.length) return null;
 
   const normalized = results.map((row, index) => {
     const probability = Number(row.probability) || 0;
@@ -120,12 +74,14 @@ const computeChartStats = (results = [], actualLabels = []) => {
     { label: 'Not Likely', value: stable },
   ];
 
-  const pieDataRaw = [
+  const pieData = [
     { name: 'High Risk (>=0.7)', value: normalized.filter((row) => row.probability >= 0.7).length },
-    { name: 'Medium Risk (0.4-0.69)', value: normalized.filter((row) => row.probability >= 0.4 && row.probability < 0.7).length },
     { name: 'Low Risk (<0.4)', value: normalized.filter((row) => row.probability < 0.4).length },
-  ];
-  const pieData = pieDataRaw.filter((item) => item.value > 0);
+    {
+      name: 'Medium Risk (0.4-0.69)',
+      value: normalized.filter((row) => row.probability >= 0.4 && row.probability < 0.7).length,
+    },
+  ].filter((item) => item.value > 0);
 
   const bins = Array.from({ length: 5 }, (_, i) => {
     const lower = i * 0.2;
@@ -164,77 +120,21 @@ const computeChartStats = (results = [], actualLabels = []) => {
 
         const tpr = tp + fn ? tp / (tp + fn) : 0;
         const fpr = fp + tn ? fp / (fp + tn) : 0;
-        return { fpr, tpr };
+        return { threshold: threshold.toFixed(1), tpr, fpr };
       }).sort((a, b) => a.fpr - b.fpr)
-    : zeroStats.rocData;
+    : [
+        { threshold: '0.0', tpr: 0, fpr: 0 },
+        { threshold: '1.0', tpr: 1, fpr: 1 },
+      ];
 
-  return { barData, pieData: pieData.length ? pieData : zeroStats.pieData, bins, matrix, rocData, hasActualLabels };
+  return { barData, pieData, bins, matrix, rocData, hasActualLabels };
 };
 
-const mapResultsWithMeta = (results = [], metaRows = []) =>
-  results.map((row, index) => ({
-    ...row,
-    region: row.region || metaRows[index]?.region || 'Unknown',
-    accountType: row.accountType || metaRows[index]?.accountType || 'Unknown',
-  }));
-
-const exportRows = (rows, type = 'csv', filename = 'analytics-report') => {
-  const headers = ['Customer Name', 'Prediction', 'Probability', 'Risk', 'Region', 'Account Type'];
-  const dataRows = rows.map((row) => [
-    row.name,
-    row.prediction,
-    Number(row.probability).toFixed(4),
-    Number(row.probability) >= 0.7 ? 'High' : Number(row.probability) >= 0.4 ? 'Medium' : 'Low',
-    row.region || 'Unknown',
-    row.accountType || 'Unknown',
-  ]);
-
-  const csv = [headers, ...dataRows]
-    .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n');
-
-  const blobType = type === 'xlsx'
-    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    : 'text/csv;charset=utf-8;';
-
-  const ext = type === 'xlsx' ? 'xlsx' : 'csv';
-  const blob = new Blob([csv], { type: blobType });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${filename}.${ext}`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-};
-
-const exportPdf = (rows) => {
-  const html = `
-    <html><head><title>Analytics Report</title></head><body>
-    <h2>Analytics Report</h2>
-    <table border="1" cellspacing="0" cellpadding="6">
-      <tr><th>Customer</th><th>Prediction</th><th>Probability</th><th>Risk</th><th>Region</th><th>Account Type</th></tr>
-      ${rows.map((r) => `<tr><td>${r.name || ''}</td><td>${r.prediction || ''}</td><td>${Number(r.probability || 0).toFixed(3)}</td><td>${Number(r.probability) >= 0.7 ? 'High' : Number(r.probability) >= 0.4 ? 'Medium' : 'Low'}</td><td>${r.region || 'Unknown'}</td><td>${r.accountType || 'Unknown'}</td></tr>`).join('')}
-    </table>
-    </body></html>
-  `;
-  const w = window.open('', '_blank');
-  if (w) {
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
-  }
-};
-
-export default function BankDashboard() {
-  const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
-  const [activeSection, setActiveSection] = useState("overview");
+const UploadDatasetSection = () => {
   const [file, setFile] = useState(null);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkError, setBulkError] = useState('');
   const [actualLabels, setActualLabels] = useState([]);
-  const [metaRows, setMetaRows] = useState([]);
-  const [pendingSession, setPendingSession] = useState(null);
   const [sessions, setSessions] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(SESSION_KEY) || '[]');
@@ -246,6 +146,142 @@ export default function BankDashboard() {
   useEffect(() => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
   }, [sessions]);
+
+  const handleFileChange = async (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile && !selectedFile.name.toLowerCase().endsWith('.csv')) {
+      setFile(null);
+      setActualLabels([]);
+      setBulkError('Only CSV files are supported.');
+      return;
+    }
+
+    setFile(selectedFile);
+    setBulkError('');
+    setActualLabels(selectedFile ? await parseCsvActualLabels(selectedFile) : []);
+  };
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setBulkError('Please select a file.');
+      return;
+    }
+
+    setBulkLoading(true);
+    setBulkError('');
+
+    try {
+      const response = await bankBatchPredict(file);
+      const results = response.data?.results || [];
+      const stats = computeChartStats(results, actualLabels);
+
+      const nextSession = {
+        id: `${Date.now()}`,
+        fileName: file.name,
+        createdAt: new Date().toISOString(),
+        results,
+        stats,
+      };
+
+      setSessions((prev) => [nextSession, ...prev].slice(0, 10));
+    } catch (err) {
+      setBulkError(err.response?.data?.message || err.message || 'Upload failed');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const clearSavedSessions = () => {
+    localStorage.removeItem(SESSION_KEY);
+    setSessions([]);
+  };
+
+  return (
+    <div style={uploadStyles.wrapper}>
+      <h3 style={uploadStyles.blockTitle}>Upload Dataset</h3>
+
+      <form onSubmit={handleBulkSubmit} style={uploadStyles.form}>
+        <div style={uploadStyles.uploadArea}>
+          <input type="file" id="file-upload" accept=".csv" onChange={handleFileChange} style={uploadStyles.fileInput} />
+          <label htmlFor="file-upload" style={uploadStyles.fileLabel}>
+            <span style={uploadStyles.uploadIcon}>📁</span>
+            {file ? file.name : 'Choose CSV file'}
+          </label>
+          <p style={uploadStyles.uploadHint}>Supported format: .csv (max 50MB)</p>
+        </div>
+
+        <div style={uploadStyles.actionRow}>
+          <button type="submit" disabled={!file || bulkLoading} style={uploadStyles.submitButton}>
+            {bulkLoading ? 'Uploading...' : 'Upload Dataset'}
+          </button>
+          {!!sessions.length && (
+            <button type="button" onClick={clearSavedSessions} style={uploadStyles.clearBtn}>
+              Clear Saved Sessions
+            </button>
+          )}
+        </div>
+      </form>
+
+      {bulkError && <div style={uploadStyles.error}>{bulkError}</div>}
+      {!sessions.length && <p style={uploadStyles.emptyText}>Upload a dataset to generate charts and save session results.</p>}
+
+      {sessions.map((session, sessionIndex) => (
+        <div key={session.id} style={uploadStyles.sessionWrap}>
+          <div style={uploadStyles.sessionHeader}>
+            <h4 style={uploadStyles.sessionTitle}>Dataset: {session.fileName || `Session ${sessionIndex + 1}`}</h4>
+            <span style={uploadStyles.sessionMeta}>{new Date(session.createdAt).toLocaleString()}</span>
+          </div>
+
+          <div style={uploadStyles.grid}>
+            <div style={uploadStyles.chartCard}><h4 style={uploadStyles.cardTitle}>Bar Chart - Prediction Counts</h4><ResponsiveContainer width="100%" height={250}><BarChart data={session.stats?.barData || []}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="label" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="value" fill={colors.accent} /></BarChart></ResponsiveContainer></div>
+            <div style={uploadStyles.chartCard}><h4 style={uploadStyles.cardTitle}>Pie Chart - Risk Segments</h4><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={session.stats?.pieData || []} dataKey="value" nameKey="name" outerRadius={84} label>{(session.stats?.pieData || []).map((entry, index) => (<Cell key={entry.name} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></div>
+            <div style={uploadStyles.chartCard}><h4 style={uploadStyles.cardTitle}>Histogram - Probability Distribution</h4><ResponsiveContainer width="100%" height={250}><BarChart data={session.stats?.bins || []}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="range" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="count" fill={colors.secondary} /></BarChart></ResponsiveContainer></div>
+
+            <div style={uploadStyles.chartCard}>
+              <h4 style={uploadStyles.cardTitle}>Confusion Matrix</h4>
+              {!session.stats?.hasActualLabels && <p style={uploadStyles.warningText}>No `Exited`/label column found in CSV, matrix is unavailable.</p>}
+              <div style={uploadStyles.matrixGrid}>
+                <div style={uploadStyles.matrixCell}>TP: {session.stats?.matrix?.TP ?? 0}</div>
+                <div style={uploadStyles.matrixCell}>FP: {session.stats?.matrix?.FP ?? 0}</div>
+                <div style={uploadStyles.matrixCell}>FN: {session.stats?.matrix?.FN ?? 0}</div>
+                <div style={uploadStyles.matrixCell}>TN: {session.stats?.matrix?.TN ?? 0}</div>
+              </div>
+            </div>
+
+            <div style={{ ...uploadStyles.chartCard, gridColumn: '1 / -1' }}>
+              <h4 style={uploadStyles.cardTitle}>ROC / AUC Curve</h4>
+              {!session.stats?.hasActualLabels && <p style={uploadStyles.warningText}>Upload a CSV with actual churn labels to view ROC/AUC.</p>}
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={session.stats?.rocData || []}>
+                  <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="fpr" type="number" domain={[0, 1]} /><YAxis dataKey="tpr" type="number" domain={[0, 1]} /><Tooltip formatter={(val) => Number(val).toFixed(2)} /><Legend />
+                  <Line type="monotone" dataKey="tpr" stroke={colors.accent} dot={false} name="ROC Curve" />
+                  <Line type="monotone" dataKey="fpr" stroke={colors.muted} dot={false} name="Diagonal Baseline" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div style={uploadStyles.resultCard}>
+            <h4 style={uploadStyles.resultTitle}>Uploaded Dataset Predictions {sessionIndex === 0 ? '(Latest)' : ''}</h4>
+            <table style={uploadStyles.table}><thead><tr style={{ background: colors.lightBg }}><th style={uploadStyles.tableHeader}>Customer Name</th><th style={uploadStyles.tableHeader}>Prediction</th><th style={uploadStyles.tableHeader}>Probability</th></tr></thead><tbody>{(session.results || []).map((row, idx) => (<tr key={`${session.id}-${row.name}-${idx}`} style={{ background: idx % 2 === 0 ? colors.white : colors.lightBg }}><td style={uploadStyles.tableCell}>{row.name}</td><td style={uploadStyles.tableCell}>{row.prediction}</td><td style={uploadStyles.tableCell}>{Number(row.probability).toFixed(3)}</td></tr>))}</tbody></table>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default function BankDashboard() {
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [churnData, setChurnData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
 
   useEffect(() => {
     if (!user) navigate("/login");
@@ -419,6 +455,8 @@ export default function BankDashboard() {
                 ))}
               </div>
 
+              <UploadDatasetSection />
+
               <div style={styles.cardContainer}>
                 <h3 style={styles.cardTitle}>Upload Dataset</h3>
                 <form onSubmit={handleRunPrediction}>
@@ -466,7 +504,6 @@ export default function BankDashboard() {
           )}
 
           {activeSection === 'predictions' && <ChurnPrediction />}
-
           {activeSection === 'analytics' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 style={styles.pageTitle}>Analytics</h2>
@@ -521,34 +558,196 @@ export default function BankDashboard() {
 }
 
 const styles = {
-  container: { minHeight: '100vh', background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column' },
-  loaderWrapper: { minHeight: '100vh', background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, display: 'flex', justifyContent: 'center', alignItems: 'center' },
-  header: { background: colors.primary, color: colors.white, padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' },
-  logo: { fontSize: '1.8rem', fontWeight: 700, letterSpacing: '0.5px' },
-  userMenu: { display: 'flex', alignItems: 'center', gap: '20px' },
-  userIdentity: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 },
-  userName: { fontSize: '1rem', fontWeight: 500 },
-  avatar: { width: 40, height: 40, borderRadius: '50%', background: colors.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 600, color: colors.white },
-  profileImage: { width: 40, height: 40, borderRadius: '50%', border: `2px solid ${colors.accent}`, objectFit: 'cover', background: colors.white },
-  logoutBtn: { padding: '8px 16px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 6, color: colors.white, cursor: 'pointer', fontWeight: 600 },
-  mainLayout: { display: 'flex', flex: 1 },
-  sidebar: { width: 260, background: colors.secondary, padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '8px' },
-  navItem: { padding: '12px 24px', border: 'none', color: colors.white, fontSize: '1rem', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent' },
-  navIcon: { fontSize: '1.3rem', width: 28 },
-  content: { flex: 1, padding: '32px', background: '#f1f5f9', overflowY: 'auto' },
-  pageTitle: { fontSize: '2rem', fontWeight: 700, color: colors.primary, marginBottom: '24px' },
-  metricsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' },
-  metricCard: { background: colors.white, padding: '24px', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: `1px solid ${colors.border}` },
-  metricLabel: { fontSize: '0.85rem', color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' },
-  metricValue: { margin: '10px 0', fontSize: '1.8rem', fontWeight: 700, color: colors.primary },
-  cardContainer: { background: colors.white, padding: '20px', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: `1px solid ${colors.border}` },
-  cardTitle: { marginBottom: 14, fontWeight: 600, fontSize: '1.2rem', color: colors.primary },
+  container: {
+    minHeight: '100vh',
+    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  loaderWrapper: {
+    minHeight: '100vh',
+    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    background: colors.primary,
+    color: colors.white,
+    padding: '16px 32px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+  },
+  logo: {
+    fontSize: '1.8rem',
+    fontWeight: 700,
+    letterSpacing: '0.5px',
+  },
+  userMenu: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+  },
+  userIdentity: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
+  },
+  userName: {
+    fontSize: '1rem',
+    fontWeight: 500,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    background: colors.accent,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.2rem',
+    fontWeight: 600,
+    color: colors.white,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    border: `2px solid ${colors.accent}` ,
+    objectFit: 'cover',
+    background: colors.white,
+  },
+  logoutBtn: {
+    padding: '8px 16px',
+    background: 'rgba(255,255,255,0.15)',
+    border: '1px solid rgba(255,255,255,0.3)',
+    borderRadius: 6,
+    color: colors.white,
+    cursor: 'pointer',
+    fontWeight: 600,
+    transition: '0.2s',
+  },
+  mainLayout: {
+    display: 'flex',
+    flex: 1,
+  },
+  sidebar: {
+    width: 260,
+    background: colors.secondary,
+    padding: '24px 0',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.1)',
+  },
+  navItem: {
+    padding: '12px 24px',
+    border: 'none',
+    background: 'transparent',
+    color: colors.white,
+    fontSize: '1rem',
+    textAlign: 'left',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    transition: '0.2s',
+    borderLeft: '4px solid transparent',
+  },
+  navIcon: {
+    fontSize: '1.3rem',
+    width: 28,
+  },
+  content: {
+    flex: 1,
+    padding: '32px',
+    background: '#f1f5f9',
+    overflowY: 'auto',
+  },
+  pageTitle: {
+    fontSize: '2rem',
+    fontWeight: 700,
+    color: colors.primary,
+    marginBottom: '24px',
+  },
+  metricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '20px',
+    marginBottom: '30px',
+  },
+  metricCard: {
+    background: colors.white,
+    padding: '24px',
+    borderRadius: 12,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+    border: `1px solid ${colors.border}`,
+  },
+  metricLabel: {
+    fontSize: '0.85rem',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginBottom: '8px',
+  },
+  metricValue: {
+    margin: '10px 0',
+    fontSize: '1.8rem',
+    fontWeight: 700,
+    color: colors.primary,
+  },
+  cardContainer: {
+    background: colors.white,
+    padding: '25px',
+    borderRadius: 12,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+    border: `1px solid ${colors.border}`,
+    marginBottom: 25,
+  },
+  cardTitle: {
+    marginBottom: 20,
+    fontWeight: 600,
+    fontSize: '1.2rem',
+    color: colors.primary,
+  },
+  placeholder: {
+    height: 250,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: colors.lightBg,
+    borderRadius: 8,
+    color: colors.muted,
+  },
+};
+
+const uploadStyles = {
+  wrapper: { marginBottom: 25 },
+  blockTitle: { margin: '0 0 12px', fontSize: '1.3rem', color: colors.primary },
+  form: { padding: 20, background: colors.white, borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: `1px solid ${colors.border}` },
+  uploadArea: { marginBottom: 20 }, fileInput: { display: 'none' },
+  fileLabel: { display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: colors.lightBg, border: `2px dashed ${colors.border}`, borderRadius: 8, fontSize: '15px', color: colors.muted, cursor: 'pointer' },
+  uploadIcon: { fontSize: '20px' }, uploadHint: { fontSize: '13px', color: colors.muted, marginTop: 8 },
+  actionRow: { display: 'flex', gap: 10, flexWrap: 'wrap' },
+  submitButton: { padding: '12px 24px', background: colors.accent, color: colors.white, border: 'none', borderRadius: 8, fontSize: '16px', fontWeight: 600, cursor: 'pointer' },
+  clearBtn: { padding: '12px 20px', background: 'transparent', color: colors.danger, border: `1px solid ${colors.danger}66`, borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  error: { marginTop: 16, padding: '12px', background: colors.danger + '10', color: colors.danger, borderRadius: 8, border: `1px solid ${colors.danger}30` },
+  emptyText: { margin: '12px 0', color: colors.muted, fontSize: 14 },
+  sessionWrap: { background: `${colors.white}`, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16, marginBottom: 16 },
+  sessionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
+  sessionTitle: { margin: 0, fontSize: '1rem', color: colors.primary }, sessionMeta: { fontSize: 13, color: colors.muted },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 },
+  chartCard: { padding: 18, background: colors.white, borderRadius: 12, border: `1px solid ${colors.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
+  cardTitle: { margin: '0 0 14px 0', color: colors.primary, fontSize: '1rem' }, warningText: { margin: '0 0 12px 0', color: colors.warning, fontSize: 13 },
   matrixGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(120px, 1fr))', gap: 10 },
   matrixCell: { background: colors.lightBg, border: `1px solid ${colors.border}`, borderRadius: 8, padding: 14, textAlign: 'center', fontWeight: 600, color: colors.primary },
-  primaryBtn: { padding: '10px 14px', border: 'none', borderRadius: 8, background: colors.accent, color: '#fff', cursor: 'pointer' },
-  secondaryBtn: { padding: '10px 14px', border: `1px solid ${colors.accent}`, borderRadius: 8, background: '#fff', color: colors.accent, cursor: 'pointer' },
-  dangerBtn: { padding: '10px 14px', border: `1px solid ${colors.danger}`, borderRadius: 8, background: '#fff', color: colors.danger, cursor: 'pointer' },
-  th: { textAlign: 'left', padding: '10px', borderBottom: `2px solid ${colors.border}` },
-  td: { padding: '10px', borderBottom: `1px solid ${colors.border}` },
+  resultCard: { padding: 20, background: colors.white, borderRadius: 12, border: `1px solid ${colors.border}`, marginTop: 16 },
+  resultTitle: { margin: '0 0 12px 0', color: colors.primary },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  tableHeader: { padding: '8px 12px', fontWeight: 600, fontSize: '15px', borderBottom: `2px solid ${colors.border}`, color: colors.primary, textAlign: 'left' },
+  tableCell: { padding: '8px 12px', fontSize: '14px', color: colors.primary, borderBottom: `1px solid ${colors.border}` },
 };
