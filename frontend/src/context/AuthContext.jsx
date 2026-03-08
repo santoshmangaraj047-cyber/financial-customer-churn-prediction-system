@@ -1,7 +1,33 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getProfile } from '../services/api';
 
-export const AuthContext = createContext();
+import { AuthContext } from './auth-context';
+
+const PREFS_KEY = 'user_profile_prefs';
+
+const getStoredPrefs = () => {
+  try {
+    return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
+const getUserPrefs = (email) => {
+  if (!email) return {};
+  const allPrefs = getStoredPrefs();
+  return allPrefs[email] || {};
+};
+
+const saveUserPrefs = (email, patch) => {
+  if (!email) return;
+  const allPrefs = getStoredPrefs();
+  allPrefs[email] = {
+    ...(allPrefs[email] || {}),
+    ...patch,
+  };
+  localStorage.setItem(PREFS_KEY, JSON.stringify(allPrefs));
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -13,16 +39,15 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const res = await getProfile();
-          setUser(res.data.user);
+          const apiUser = res.data.user;
+          setUser({ ...apiUser, ...getUserPrefs(apiUser.email) });
         } catch (err) {
-          // Only log out on 401/403 errors
           if (err?.response && (err.response.status === 401 || err.response.status === 403)) {
             console.error('Session expired');
             localStorage.removeItem('token');
             setToken(null);
             setUser(null);
           } else {
-            // Network/backend error: keep token, just show loading or error UI
             console.warn('Could not fetch profile, but token is kept.');
           }
         }
@@ -32,11 +57,19 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, [token]);
 
-  const login = (token, userData) => {
-    console.log('Login received userData:', userData);
-    localStorage.setItem('token', token);
-    setToken(token);
-    setUser(userData);
+  const login = (authToken, userData) => {
+    localStorage.setItem('token', authToken);
+    setToken(authToken);
+    setUser({ ...userData, ...getUserPrefs(userData.email) });
+  };
+
+  const updateUserProfile = (patch) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      saveUserPrefs(prev.email, patch);
+      return next;
+    });
   };
 
   const logout = () => {
@@ -46,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
