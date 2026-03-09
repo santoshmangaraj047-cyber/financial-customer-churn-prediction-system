@@ -203,9 +203,9 @@ const UploadDatasetSection = () => {
 
       <form onSubmit={handleBulkSubmit} style={uploadStyles.form}>
         <div style={uploadStyles.uploadArea}>
-          <input type="file" id="file-upload" accept=".csv" onChange={handleFileChange} style={uploadStyles.fileInput} />
+          <input type="file" id="file-upload" accept=".csv,.xlsx,.xls" onChange={handleFileChange} style={uploadStyles.fileInput} />
           <label htmlFor="file-upload" style={uploadStyles.fileLabel}>
-            <span style={uploadStyles.uploadIcon}>📁</span>
+            <span style={uploadStyles.uploadIcon}>📂</span>
             {file ? file.name : 'Choose Supported File'}
           </label>
           <p style={uploadStyles.uploadHint}>Supported format: .csv/.xlsx/.xlx (max 50MB)</p>
