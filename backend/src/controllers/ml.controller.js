@@ -29,6 +29,25 @@ const resolvePythonCommand = () => {
 
 const PYTHON_CMD = resolvePythonCommand();
 
+
+const SUPPORTED_DATASET_EXTENSIONS = new Set(['.csv', '.xlsx', '.xls']);
+const hasSupportedExtension = (name = '') => SUPPORTED_DATASET_EXTENSIONS.has(path.extname(name).toLowerCase());
+
+const parsePredictionOutput = (output) => output
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .map((line) => {
+    const [name, pred, proba, region, accountType] = line.split(',');
+    return {
+      name,
+      prediction: pred === '1' ? 'Likely to Churn' : 'Not Likely to Churn',
+      probability: Number(proba),
+      region: region || 'Unknown',
+      accountType: accountType || 'Unknown',
+    };
+  });
+
 const formatPythonFailure = (output, fallbackMessage) => {
   if (!output) return fallbackMessage;
   if (output.includes("No module named")) {
@@ -115,6 +134,9 @@ export const adminUploadDataset = [
   },
   async (req, res) => {
     try {
+      if (!hasSupportedExtension(req.file.originalname)) {
+        return res.status(400).json({ success: false, message: 'Only CSV, XLSX, and XLS files are supported.' });
+      }
       // Save uploaded file to data dir
       const destPath = path.join(DATA_DIR, req.file.originalname);
       fs.renameSync(req.file.path, destPath);
@@ -196,10 +218,7 @@ export const adminBatchPredict = async (req, res) => {
     py.on('close', (code) => {
       if (code === 0) {
         // Parse output into array
-        const results = output.trim().split('\n').map(line => {
-          const [name, pred, proba] = line.split(',');
-          return { name, prediction: pred === '1' ? 'Likely to Churn' : 'Not Likely to Churn', probability: Number(proba) };
-        });
+        const results = parsePredictionOutput(output);
         res.json({ success: true, results });
         logEvent({
           level: 'INFO',
@@ -245,10 +264,7 @@ export const adminPredictionSummary = async (req, res) => {
     py.stderr.on('data', (data) => { output += data.toString(); });
     py.on('close', (code) => {
       if (code === 0) {
-        const results = output.trim().split('\n').map(line => {
-          const [name, pred, proba] = line.split(',');
-          return { name, prediction: pred === '1' ? 'Likely to Churn' : 'Not Likely to Churn', probability: Number(proba) };
-        });
+        const results = parsePredictionOutput(output);
         const total = results.length;
         const churn = results.filter(r => r.prediction === 'Likely to Churn').length;
         const notChurn = total - churn;
@@ -355,12 +371,12 @@ export const bankBatchPredict = async (req, res) => {
   try {
     const csvPath = req.file?.path || (req.body?.filename ? path.join(UPLOADS_DIR, req.body.filename) : null);
     if (!csvPath || !fs.existsSync(csvPath)) {
-      return res.status(404).json({ success: false, message: 'CSV not found' });
+      return res.status(404).json({ success: false, message: 'Dataset file not found' });
     }
 
-    const sourceName = req.file?.originalname || req.body?.filename || '';
-    if (sourceName && path.extname(sourceName).toLowerCase() !== '.csv') {
-      return res.status(400).json({ success: false, message: 'Only CSV files are supported' });
+    const sourceName = req.file?.originalname || req.body?.filename || req.file?.filename || '';
+    if (sourceName && !hasSupportedExtension(sourceName)) {
+      return res.status(400).json({ success: false, message: 'Only CSV, XLSX, and XLS files are supported.' });
     }
 
     const py = spawn(PYTHON_CMD, [path.join(ML_DIR, 'predict.py'), csvPath]);
@@ -369,10 +385,7 @@ export const bankBatchPredict = async (req, res) => {
     py.stderr.on('data', (data) => { output += data.toString(); });
     py.on('close', (code) => {
       if (code === 0) {
-        const results = output.trim().split('\n').map(line => {
-          const [name, pred, proba] = line.split(',');
-          return { name, prediction: pred === '1' ? 'Likely to Churn' : 'Not Likely to Churn', probability: Number(proba) };
-        });
+        const results = parsePredictionOutput(output);
 
         storePredictions(req.user?.id, results, 'batch', req.file?.originalname || req.body?.filename || '')
           .catch((err) => console.warn('Batch prediction history save failed:', err.message));

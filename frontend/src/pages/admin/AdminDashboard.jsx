@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../context/auth-context";
 import Users from "./Users";               // 👈 Import Users component
 import Analytics from "./Analytics";       // 👈 Import Analytics
 import Logs from "./Logs";                 // 👈 Import Logs
