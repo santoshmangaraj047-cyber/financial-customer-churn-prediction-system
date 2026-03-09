@@ -776,4 +776,5 @@ const uploadStyles = {
   table: { width: '100%', borderCollapse: 'collapse' },
   tableHeader: { padding: '8px 12px', fontWeight: 600, fontSize: '15px', borderBottom: `2px solid ${colors.border}`, color: colors.primary, textAlign: 'left' },
   tableCell: { padding: '8px 12px', fontSize: '14px', color: colors.primary, borderBottom: `1px solid ${colors.border}` },
+  riskBadge: { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: 999, fontWeight: 600, fontSize: 12 },
 };
