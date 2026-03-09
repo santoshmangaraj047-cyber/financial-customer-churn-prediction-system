@@ -37,6 +37,13 @@ const colors = {
 const PIE_COLORS = [colors.danger, colors.success, colors.warning];
 const SESSION_KEY = 'bank_prediction_chart_sessions';
 
+const getRiskLevel = (probability) => {
+  const value = Number(probability) || 0;
+  if (value >= 0.7) return 'High';
+  if (value >= 0.4) return 'Medium';
+  return 'Low';
+};
+
 const parseCsvActualLabels = async (selectedFile) => {
   try {
     const text = await selectedFile.text();
@@ -264,7 +271,7 @@ const UploadDatasetSection = () => {
 
           <div style={uploadStyles.resultCard}>
             <h4 style={uploadStyles.resultTitle}>Uploaded Dataset Predictions {sessionIndex === 0 ? '(Latest)' : ''}</h4>
-            <table style={uploadStyles.table}><thead><tr style={{ background: colors.lightBg }}><th style={uploadStyles.tableHeader}>Customer Name</th><th style={uploadStyles.tableHeader}>Prediction</th><th style={uploadStyles.tableHeader}>Probability</th></tr></thead><tbody>{(session.results || []).map((row, idx) => (<tr key={`${session.id}-${row.name}-${idx}`} style={{ background: idx % 2 === 0 ? colors.white : colors.lightBg }}><td style={uploadStyles.tableCell}>{row.name}</td><td style={uploadStyles.tableCell}>{row.prediction}</td><td style={uploadStyles.tableCell}>{Number(row.probability).toFixed(3)}</td></tr>))}</tbody></table>
+            <table style={uploadStyles.table}><thead><tr style={{ background: colors.lightBg }}><th style={uploadStyles.tableHeader}>Customer Name</th><th style={uploadStyles.tableHeader}>Prediction</th><th style={uploadStyles.tableHeader}>Probability</th><th style={uploadStyles.tableHeader}>Risk Level</th></tr></thead><tbody>{(session.results || []).map((row, idx) => (<tr key={`${session.id}-${row.name}-${idx}`} style={{ background: idx % 2 === 0 ? colors.white : colors.lightBg }}><td style={uploadStyles.tableCell}>{row.name}</td><td style={uploadStyles.tableCell}>{row.prediction}</td><td style={uploadStyles.tableCell}>{Number(row.probability).toFixed(3)}</td><td style={uploadStyles.tableCell}>{row.risk_level || getRiskLevel(row.probability)}</td></tr>))}</tbody></table>
           </div>
         </div>
       ))}
