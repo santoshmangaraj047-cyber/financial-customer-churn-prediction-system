@@ -83,7 +83,7 @@ const ModelControl = () => {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setUploadMsg('Please select a CSV file.');
+      setUploadMsg('Please select a CSV, XLSX, or XLS file.');
       return;
     }
     setUploading(true);
@@ -209,13 +209,13 @@ const ModelControl = () => {
             <input
               type="file"
               id="file-upload"
-              accept=".csv"
+              accept=".csv,.xlsx,.xls"
               onChange={handleFileUpload}
               style={styles.fileInput}
             />
             <label htmlFor="file-upload" style={styles.fileLabel}>
               <span style={styles.uploadIcon}>📁</span>
-              {selectedFile ? selectedFile.name : 'Choose CSV file'}
+              {selectedFile ? selectedFile.name : 'Choose CSV/XLSX/XLS file'}
             </label>
           </div>
           {selectedFile && (

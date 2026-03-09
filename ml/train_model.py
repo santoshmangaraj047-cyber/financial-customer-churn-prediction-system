@@ -1,6 +1,5 @@
 import sys
 import pandas as pd
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
@@ -19,6 +18,13 @@ NAME_CANDIDATES = ['surname', 'name', 'customername', 'customer_name']
 
 def normalize_col(name):
     return name.strip().lower().replace(' ', '').replace('_', '')
+
+
+def load_input_table(input_path):
+    ext = os.path.splitext(input_path)[1].lower()
+    if ext in ['.xlsx', '.xls']:
+        return pd.read_excel(input_path, nrows=1000)
+    return pd.read_csv(input_path, nrows=1000)
 
 
 def find_target_col(columns):
@@ -47,17 +53,14 @@ def find_drop_cols(columns, target_col):
             drop_cols.add(col)
     return list(drop_cols)
 
-# Usage: python train_model.py <csv_path>
+
 def main():
     if len(sys.argv) < 2:
-        print('Usage: python train_model.py <csv_path>')
+        print('Usage: python train_model.py <dataset_path>')
         sys.exit(1)
-    csv_path = sys.argv[1]
+    dataset_path = sys.argv[1]
 
-    # Read only first 1000 rows for demo speed
-    df = pd.read_csv(csv_path, nrows=1000)
-
-    # Basic preprocessing
+    df = load_input_table(dataset_path)
     df = df.dropna()
     if df.empty:
         raise ValueError('Dataset is empty after removing missing rows')
@@ -67,7 +70,6 @@ def main():
     drop_cols = find_drop_cols(list(df.columns), target_col)
 
     y = df[target_col]
-    # Handle common string labels
     if y.dtype == object:
         y_map = {'yes': 1, 'true': 1, 'churn': 1, '1': 1, 'no': 0, 'false': 0, '0': 0}
         y = y.astype(str).str.strip().str.lower().map(y_map)
@@ -83,11 +85,9 @@ def main():
     X = pd.get_dummies(X)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    # Reduce n_estimators for faster training
     clf = RandomForestClassifier(n_estimators=10, random_state=42)
     clf.fit(X_train, y_train)
 
-    # Save model with metadata for prediction-time preprocessing
     joblib.dump(
         {
             'model': clf,
@@ -99,7 +99,6 @@ def main():
         MODEL_PATH
     )
 
-    # Print metrics for demo
     y_pred = clf.predict(X_test)
     accuracy = float(accuracy_score(y_test, y_pred))
     precision, recall, f1_score, _ = precision_recall_fscore_support(
@@ -108,7 +107,7 @@ def main():
 
     meta = {
         'trained_at': datetime.now(timezone.utc).isoformat(),
-        'dataset': os.path.basename(csv_path),
+        'dataset': os.path.basename(dataset_path),
         'target_column': target_col,
         'display_column': display_col,
         'total_samples': int(len(y)),
@@ -129,6 +128,7 @@ def main():
     print(classification_report(y_test, y_pred))
     print(f'Model saved to {MODEL_PATH}')
     print(f'Metadata saved to {MODEL_META_PATH}')
+
 
 if __name__ == '__main__':
     main()
